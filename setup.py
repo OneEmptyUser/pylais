@@ -9,5 +9,6 @@ setup(
     install_requires=[
         "tensorflow",
         "tensorflow_probability",
+        "tf_keras"
     ]
 )
