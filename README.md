@@ -15,6 +15,7 @@ The main methods in this class are:
 As examples of the use of pylais we present a simple integration problem and a non-linear regression one.
 
 ### Integration problem
+In this problem we want to calculate the integral the marginal likelihood of a function.
 ```{python}
 
 import tensorflow as tf
@@ -47,3 +48,9 @@ means = myLais.upper_layer(n_iter, N, initial_points, method=method, mcmc_settin
 ImpSamples = myLais.lower_layer(cov, n_per_sample, den)
 print(ImpSamples.Z)
 ```
+
+### Non-linear regression
+In this example we have data that comes from the function
+$
+f(t|\theta) = \exp{-\theta_0t}\sin{\theta_1t}
+$
