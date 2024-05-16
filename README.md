@@ -51,4 +51,45 @@ print(ImpSamples.Z)
 
 ### Non-linear regression
 In this example we have data that comes from the function
-$f(t|\theta) = \exp{(-\theta_0t)}\sin{(\theta_1t)}$
+$f(t|\theta) = \exp{(-\theta_0t)}\sin{(\theta_1t)}$. Let's simulate the data and save everything in a class.
+```
+class ExampleReg:
+    A, B = 0.1, 2
+    theta_true = tf.constant((A, B), dtype=tf.float64)
+    def __init__(self):
+        self.x = tf.linspace(0, 10, 50)
+        self.y = self.f(self.theta_true) + tf.random.normal(shape=(50,), stddev=0.1, dtype=tf.float64)
+
+    def f(self, theta):
+        a = theta[0]
+        b = theta[1]
+        return tf.exp(-a * self.x)*tf.sin(b * self.x)
+    
+    def loglikelihood(self, theta):
+        y_est = self.f(theta)
+        return -tf.math.reduce_sum(tf.math.square(self.y - y_est))
+
+    def logprior(theta):
+    a = theta[0]
+    b = theta[1]
+    if (0<a and a<10) and (0 < b and b < 6):
+        return 0
+    else:
+        return -tf.constant(numpy.inf)
+```
+After having our likelihood and prior we use lais to estimate the mean of the posterior distribution.
+```
+example = ExampleReg()
+
+logtarget = example.loglikelihood
+logprior = example.logprior
+myLais = Lais(logtarget, logprior)
+
+gen = tf.random.Generator.from_seed(1)
+initial_points = gen.uniform((N, dim), dtype=tf.float64)
+
+upper_settings = {"method": method, "mcmc_settings": settings}
+lower_settings = {"cov": cov, "den": den, "n_per_sample": n_per_sample}
+samples = myLais.main(n_iter, N, initial_points, upper_settings, lower_settings)
+print(samples.moment_n())
+```
