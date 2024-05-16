@@ -15,7 +15,7 @@ The main methods in this class are:
 As examples of the use of pylais we present a simple integration problem and a non-linear regression one.
 
 ### Integration problem
-````{python}
+```{python}
 
 import tensorflow as tf
 import tensorflow_probability as tfp
