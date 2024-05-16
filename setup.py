@@ -6,4 +6,8 @@ setup(
     packages=["pylais"],
     author="OneEmptyUser",
     author_email="pDd5A@example.com",
+    install_requires=[
+        "tensorflow",
+        "tensorflow_probability",
+    ]
 )
