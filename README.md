@@ -51,4 +51,4 @@ print(ImpSamples.Z)
 
 ### Non-linear regression
 In this example we have data that comes from the function
-$f(t|\theta) = \exp{-\theta_0t}\sin{\theta_1t}$
+$f(t|\theta) = \exp{(-\theta_0t)}\sin{(\theta_1t)}$
