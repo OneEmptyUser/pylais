@@ -83,7 +83,7 @@ class mcmcSamples:
             ax.set_ylim(ylim)
         plt.show()
     
-class Samples:
+class ISSamples:
     def __init__(self, samples, weights):
         self.samples = samples
         self.weights = weights

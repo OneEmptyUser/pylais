@@ -2,7 +2,7 @@ from .utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, retur
 import tensorflow as tf
 import tensorflow_probability as tfp
 from .denominators import all_, temporal, spatial
-from.samples import Samples, mcmcSamples
+from.samples import ISSamples, mcmcSamples
 
 
 class Lais:
@@ -93,13 +93,13 @@ class Lais:
         # self.flatted_samples = flatted_samples
         self.weights = weights
         
-        self.IS_samples = Samples(flatted_samples, weights)
+        self.IS_samples = ISSamples(flatted_samples, weights)
         return self.IS_samples
         
     def resample(self, n):
         
         if "IS_samples" in dir(self):
-            return self.ISsamples.resample(n)
+            return self.IS_samples.resample(n)
         else:
             return "No IS samples"
         
