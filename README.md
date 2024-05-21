@@ -1,7 +1,7 @@
 # Layered adaptive importance sampling for python
 
 
-Layered Adaptive Importance Sampling is an IS method that consists of two layers of sampling. In the upper layer, the location parameters of the proposal densities to be used in the lower layer are adapted. The adaptation is carried out by running $N$ MCMC chains of length $T$. After $T$ iterations, we have a population of $NT$ location parameters $\{\bmu_{n,t}\}$. In the lower layer, Importance Sampling is performed, where samples $\textbf{x}_{n,t}\sim q(\bx | \bmu_{n,t})$ are drawn, and each one is associated with a weight.
+Layered Adaptive Importance Sampling is an IS method that consists of two layers of sampling. In the upper layer, the location parameters of the proposal densities to be used in the lower layer are adapted. The adaptation is carried out by running $N$ MCMC chains of length $T$. After $T$ iterations, we have a population of $NT$ location parameters $\{\mathbf{\mu}_{n,t}\}$. In the lower layer, Importance Sampling is performed, where samples $\textbf{x}_{n,t}\sim q(\textbf{x} | {\mu}_{n,t})$ are drawn, and each one is associated with a weight.
 
 
 The main class of the `pylais` package is the class \verb*|Lais|. This class can be instantiated with the logarithm of the likelihood and the logarithm of the prior.
@@ -15,7 +15,7 @@ The main methods in this class are:
 As examples of the use of pylais we present a simple integration problem and a non-linear regression one.
 
 ### Integration problem
-In this problem we want to calculate the integral the marginal likelihood of a function.
+In this problem we want to calculate the integral or marginal likelihood of a gaussian probability density function.
 ```{python}
 
 import tensorflow as tf
@@ -44,14 +44,14 @@ myLais = Lais(logtarget)
 gen = tf.random.Generator.from_seed(1)
 initial_points = gen.uniform((N, dim), dtype=tf.float64)
 
-means = myLais.upper_layer(n_iter, N, initial_points, method=method, mcmc_settings=settings)
-ImpSamples = myLais.lower_layer(cov, n_per_sample, den)
-print(ImpSamples.Z)
+means = myLais.upper_layer(n_iter, N, initial_points, method=method, mcmc_settings=settings) # run the upper layer
+ImpSamples = myLais.lower_layer(cov, n_per_sample, den) # run the lower layer
+print(ImpSamples.Z) # calls the property Z of the ISSamples class
 ```
 
 ### Non-linear regression
 In this example we have data that comes from the function
-$f(t|\theta) = \exp{(-\theta_0t)}\sin{(\theta_1t)}$. Let's simulate the data and save everything in a class.
+$f(t|\mathbf{\theta}) = \exp{(-\theta_0t)}\sin{(\theta_1t)}$ and we want to estimate value of the parameter vector $\mathbf{\theta}$. Let's simulate the data and save everything in a class.
 ```
 class ExampleReg:
     A, B = 0.1, 2
@@ -69,13 +69,17 @@ class ExampleReg:
         y_est = self.f(theta)
         return -tf.math.reduce_sum(tf.math.square(self.y - y_est))
 
-    def logprior(theta):
-    a = theta[0]
-    b = theta[1]
-    if (0<a and a<10) and (0 < b and b < 6):
-        return 0
-    else:
-        return -tf.constant(numpy.inf)
+    @tf.function
+    def logprior(self, theta):
+        a = theta[0]
+        b = theta[1]
+        a_limits = tf.constant((0, 10), dtype=tf.float64)
+        b_limits = tf.constant((0, 6), dtype=tf.float64)
+        if (a_limits[0]<a and a<a_limits[1]) and (b_limits[0] < b and b < b_limits[1]):
+            # return tf.constant(0, dtype=tf.float64)
+            return tf.math.log(tf.constant(1/60, dtype=tf.float64))
+        else:
+            return tf.constant(-numpy.inf, dtype=tf.float64)
 ```
 After having our likelihood and prior we use lais to estimate the mean of the posterior distribution.
 ```
