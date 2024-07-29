@@ -10,6 +10,19 @@ import matplotlib.pyplot as plt
 
 # def new_state_rw_fn()
 def returnKernel(kernel, logposterior, settings={}):
+    """Build the transition kernel for the MCMC algorithm.
+
+    Args:
+        kernel: str
+            The type of algorithm to use.
+        logposterior: function
+            The log posterior function to use.
+        settings: dict (optional)
+            A dictionary with the settings of each specific algorithm. Defaults to {}.
+
+    Returns:
+        _type_: _description_
+    """
     if kernel=="rw":
         cov = settings.get("cov", None)
         if cov is None:
@@ -56,6 +69,21 @@ def returnKernel(kernel, logposterior, settings={}):
     return kernel
 
 def general_cov(cov):
+    """
+    Return a function that generates the new state coming from a Gaussian with
+    the given covariance matrix.
+
+    Parameters:
+    - cov: (list, tuple, or tf.Tensor) 
+        If it is a list or tuple, it is a diagonal covariance matrix; if it is a tf.Tensor,
+        it is a covariance matrix.
+    
+    Returns:
+    - new_state_fn: (function)
+        A function that generates the new state coming from a Gaussian with
+        the given covariance matrix.
+    """
+    
     # if it is a list of number
     if not tf_is_tensor(cov):
         if isinstance(cov, (list, tuple)):
@@ -79,11 +107,42 @@ def general_cov(cov):
     return new_state_fn
 
 def buildModelLogp(loglikelihood, logprior=None):
+    """
+    Build a log posterior function for a model.
+
+    Parameters:
+        loglikelihood: function
+            A function that calculates the log likelihood of the model.
+        logprior: function, (optional)
+            A function that calculates the log prior of the model. Defaults to None.
+
+    Returns:
+        logp: (function)
+            A function that calculates the log posterior of the model.
+
+    """
     def logp(theta):
         return loglikelihood(theta) + logprior(theta) if logprior else loglikelihood(theta)
     return logp
 
 def scatter(tensor, xlim=None, ylim=None, axis=None):
+    """
+    Plot a scatter plot of a 2D or 3D tensor.
+
+    Parameters:
+        tensor: (tf.Tensor)
+            The tensor to be plotted. It can be a 2D or 3D tensor.
+        xlim: tuple, (optional)
+            The x-axis limits for the plot. Defaults to None.
+        ylim: tuple, (optional)
+            The y-axis limits for the plot. Defaults to None.
+        axis: matplotlib.axes._subplots.AxesSubplot, (optional)
+            The axis to plot on. Defaults to None.
+
+    Returns:
+        None
+    """
+    
     if axis:
         ax = axis
     else:
@@ -100,6 +159,16 @@ def scatter(tensor, xlim=None, ylim=None, axis=None):
     plt.show()
     
 def timeit(func):
+    """
+    Decorator function that measures the execution time of a given function.
+
+    Args:
+        func: (callable)
+            The function to be timed.
+
+    Returns:
+        callable: The wrapped function that measures the execution time.
+    """
     def wrapper(*args, **kwargs):
         start = time()
         result = func(*args, **kwargs)
@@ -110,14 +179,52 @@ def timeit(func):
 
 
 def flatTensor3D(tensor):
+    """
+    Reshape a 3D tensor into a 2D tensor by flattening the second dimension.
+
+    Parameters:
+        tensor: tensorflow.Tensor
+            The input 3D tensor of shape (N, T, dim).
+
+    Returns:
+        tf.Tensor: The flattened 2D tensor of shape (N*T, dim).
+    """
     N, T, dim = tensor.shape
     return tf_reshape(tensor, (N*T, dim))
 
 def repeatTensor3D(tensor, each):
+    """
+    Repeat a 3D tensor along the second dimension.
+
+    Parameters:
+        tensor: tensorflow.Tensor
+            The input 3D tensor of shape (N, T, dim).
+        each: int
+            The number of times to repeat each element along the second dimension.
+
+    Returns:
+        tf.Tensor: The tensor with repeated elements along the second dimension. The shape is (N, T*each, dim).
+    """
     return tf_repeat(tensor, each, axis=1)
 
 @tf_function
 def run_mcmc(kernel, num_results, num_burnin_steps, current_state):
+    """
+    Run the MCMC algorithm using the given kernel.
+
+    Parameters:
+        kernel: tfp.mcmc.Kernel
+            The MCMC kernel to use.
+        num_results: int
+            The number of samples to generate.
+        num_burnin_steps: int
+            The number of burn-in steps to perform.
+        current_state: tf.Tensor
+            The initial state of the MCMC chain.
+
+    Returns:
+        tf.Tensor: The generated samples from the MCMC chain.
+    """
     if not tf_is_tensor(current_state):
         current_state = tf_constant(current_state)
     samples = tfp.mcmc.sample_chain(
