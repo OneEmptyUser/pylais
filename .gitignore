@@ -1,3 +1,5 @@
 pylais.egg-info
 pylais.egg-info/*
 pylais/__pycache__
+docs/build/*
+docs/build
