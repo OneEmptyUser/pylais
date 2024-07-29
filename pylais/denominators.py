@@ -5,15 +5,23 @@ mvn = tfp.distributions.MultivariateNormalFullCovariance
 
 def spatial(means, samples, cov):
     """
-    Calculate the spatial density for the given means, samples, and covariance matrix.
+    Calculate the spatial denominator for each sample.
+    
+    Calculate the spatial denominator as the average of the density evaluation
+    on each sample of all the proposals that were adapted at the same time
+    that the proposal that originated the sample.
 
     Parameters:
-    - means: numpy array of shape (N, T, dim) representing the means.
-    - samples: numpy array of shape (_, n_samples, _) representing the samples.
-    - cov_down: covariance matrix.
+    means: tensorflow.Tensor
+        Tensor of shape (N, T, dim) representing the means.
+    samples: tensorflow.Tensor
+        Tensor of shape (_, n_samples, _) representing the samples.
+    cov_down: tensorflow.Tensor
+        The covariance matrix of the proposals
 
     Returns:
-    - dens: numpy array of shape (N, n_samples, 1) representing the spatial density
+    dens: tensorflow.Tensor
+        Tensor of shape (N, n_samples, 1) representing the spatial denominator.
     """
     
     N, T, dim = means.shape
@@ -30,6 +38,25 @@ def spatial(means, samples, cov):
     return dens
 
 def temporal(means, samples, cov):
+    """
+    Calculate the temporal denominator for each sample.
+    
+    Calculate the temporal denominator as the average of the density evaluation
+    on each sample of all the proposals that were adapted in the same chain as
+    the proposal that originated the sample.
+
+    Parameters:
+    means: tensorflow.Tensor
+        Tensor of shape (N, T, dim) representing the means.
+    samples: tensorflow.Tensor
+        Tensor of shape (_, n_samples, _) representing the samples.
+    cov: tensorflow.Tensor
+        The covariance matrix of the proposals
+
+    Returns:
+    dens: tensorflow.Tensor
+        Tensor of shape (N, n_samples, 1) representing the temporal denominator
+    """
     N, T, dim = means.shape
     _, n_samples, _ = samples.shape
     
@@ -44,6 +71,24 @@ def temporal(means, samples, cov):
     return dens
 
 def all_(flatted_means, flatted_samples, cov):
+    """
+    Calculate the total denominator for each sample.
+    
+    Calculate the total denominator as the average of the density evaluation
+    of all the proposals on each sample.
+    
+    Parameters:
+        flatted_means: tensorflow.Tensor
+            The tensor of means with shape (N, T, dim).
+        flatted_samples: tensorflow.Tensor
+            The tensor of samples with shape (_, n_samples, _).
+        cov: tensorflow.Tensor
+            The covariance matrix of the proposals with shape (dim, dim).
+
+    Returns:
+        dens: tensorflow.Tensor
+            The tensor of denominators with shape (N, n_samples, 1).
+    """
     aux_fn = tf.function(
         lambda x: tf.math.reduce_mean(mvn(loc=x, covariance_matrix=cov).prob(flatted_means))
         )
