@@ -6,7 +6,9 @@
 pylais documentation
 ====================
 
-This is the documentation of pylais
+This python package presents the implementation of Layered Adaptive Importance Sampling algorithm presented in *Martino, L., Elvira, V., Luengo, D., & Corander, J. (2017). Layered adaptive importance sampling. Statistics and Computing, 27, 599-623*
+and extended in *Llorente, F., Curbelo, E., Martino, L., Elvira, V., & Delgado, D. (2022). MCMC‐driven importance samplers. Applied Mathematical Modelling, 111, 310-331*.
+
 
 .. toctree::
    :maxdepth: 2
@@ -17,6 +19,8 @@ Contents:
 ---------
 
 .. toctree::
+   installation
+   getting_started
    upper_layer
    lower_layer
 
