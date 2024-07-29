@@ -11,17 +11,19 @@ def spatial(means, samples, cov):
     on each sample of all the proposals that were adapted at the same time
     that the proposal that originated the sample.
 
-    Parameters:
-    means: tensorflow.Tensor
-        Tensor of shape (N, T, dim) representing the means.
-    samples: tensorflow.Tensor
-        Tensor of shape (_, n_samples, _) representing the samples.
-    cov_down: tensorflow.Tensor
-        The covariance matrix of the proposals
+    Parameters
+    ----------
+        means: tensorflow.Tensor
+            Tensor of shape (N, T, dim) representing the means.
+        samples: tensorflow.Tensor
+            Tensor of shape (_, n_samples, _) representing the samples.
+        cov_down: tensorflow.Tensor
+            The covariance matrix of the proposals
 
-    Returns:
-    dens: tensorflow.Tensor
-        Tensor of shape (N, n_samples, 1) representing the spatial denominator.
+    Returns
+    -------
+        dens: tensorflow.Tensor
+            Tensor of shape (N, n_samples, 1) representing the spatial denominator.
     """
     
     N, T, dim = means.shape
@@ -45,17 +47,19 @@ def temporal(means, samples, cov):
     on each sample of all the proposals that were adapted in the same chain as
     the proposal that originated the sample.
 
-    Parameters:
-    means: tensorflow.Tensor
-        Tensor of shape (N, T, dim) representing the means.
-    samples: tensorflow.Tensor
-        Tensor of shape (_, n_samples, _) representing the samples.
-    cov: tensorflow.Tensor
-        The covariance matrix of the proposals
+    Parameters
+    ----------
+        means: tensorflow.Tensor
+            Tensor of shape (N, T, dim) representing the means.
+        samples: tensorflow.Tensor
+            Tensor of shape (_, n_samples, _) representing the samples.
+        cov: tensorflow.Tensor
+            The covariance matrix of the proposals
 
-    Returns:
-    dens: tensorflow.Tensor
-        Tensor of shape (N, n_samples, 1) representing the temporal denominator
+    Returns
+    -------
+        dens: tensorflow.Tensor
+            Tensor of shape (N, n_samples, 1) representing the temporal denominator
     """
     N, T, dim = means.shape
     _, n_samples, _ = samples.shape

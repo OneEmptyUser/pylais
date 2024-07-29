@@ -101,24 +101,26 @@ class Lais:
         This function runs the MCMC layer, and adapt the proposals needed in the lower layer with an MCMC algorithm,
         which consists of adapting the MCMC chains to the target distribution.
 
-        Parameters:
-            n_iter: int
-                The number of iterations for the upper layer.
-            N: int
-                The number of MCMC chains to run in the upper layer.
-            initial_points: tensorflow.Tensor
-                The initial points for the MCMC chains.
-            method: str, (optional)
-                The method to use in the upper layer. Defaults to "rw".
-            mcmc_settings: dict, (optional)
-                Additional settings for the MCMC method. Defaults to an empty dictionary.
+        Parameters
+        ----------
+        n_iter: int
+            The number of iterations for the upper layer.
+        N: int
+            The number of MCMC chains to run in the upper layer.
+        initial_points: tensorflow.Tensor
+            The initial points for the MCMC chains. It is a tf.Tensor of shape (N, dim).
+        method: str, (optional)
+            The method to use in the upper layer. Defaults to "rw".
+        mcmc_settings: dict, (optional)
+            Additional settings for the MCMC method. Defaults to an empty dictionary.
 
-        Returns:
-            mcmcSamples: The MCMC samples obtained from the upper layer.
+        Returns
+        -------
+        mcmcSamples
+            The MCMC samples obtained from the upper layer.
 
         Raises:
             Exception: If the number of initial points is not equal to N.
-
         """
         # get dimensions of the problem
         _, dim = initial_points.shape

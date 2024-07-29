@@ -10,22 +10,25 @@ class mcmcSamples:
     
  
     Attributes
-        samples : tensorflow.Tensor a tensor of shape (n_chains, n_iter, n_params)
-        containing the samples
-    
-    Methods:
-        __str__(self)
-        gelman_rubin(self)
-            Calculate the Gelman-Rubin statistic for  the chains.
-        trace(self, axis=None)
-            Plot the trace of the chains.
-        scatter(self, xlim=None, ylim=None, axis=None)
-            Do an scatter plot of all the chains.
-        autoCorrPlot(self, chain=0, component=0, max_lag=10, axis=None, plot_args={})
-            Plot the autocorrelation function for the given chain and component.
-        cummulativeMean(self)
-            Plot the cumulative mean of the samples.
+    ----------
+    samples : tensorflow.Tensor 
+        A tensor of shape (n_chains, n_iter, n_params) containing the samples
+
+    Methods
+    -------
+    __str__(self)
+    gelman_rubin(self)
+        Calculate the Gelman-Rubin statistic for  the chains.
+    trace(self, axis=None)
+        Plot the trace of the chains.
+    scatter(self, xlim=None, ylim=None, axis=None)
+        Do an scatter plot of all the chains.
+    autoCorrPlot(self, chain=0, component=0, max_lag=10, axis=None, plot_args={})
+        Plot the autocorrelation function for the given chain and component.
+    cummulativeMean(self)
+        Plot the cumulative mean of the samples.
     """
+    
     def __init__(self, samples):
         """
         Initializes a new instance of the class with the given samples.
@@ -149,10 +152,12 @@ class mcmcSamples:
         (i.e., the chain axis) and dividing it by the range of indices from 1 to the number of iterations.
         The resulting cumulative means are then plotted using matplotlib.
 
-        Parameters:
+        Parameters
+        ----------
             None
 
-        Returns:
+        Returns
+        -------
             None
         """
         dType = self.samples.dtype
@@ -225,7 +230,7 @@ class ISSamples:
         """
         Initializes the ISSamples object with the given samples and weights.
 
-        Args:
+        Parameters:
             samples: (tensorflow.Tensor)
                 A tensor of shape (n_chains, n_iter, n_params) containing the samples.
             weights: (tensorflow.Tensor)
@@ -242,12 +247,14 @@ class ISSamples:
         """
         Resamples the samples based on the given number of samples.
 
-        Parameters:
-            n: (int)
+        Parameters
+        ----------
+            n : int
                 The number of samples to resample.
 
-        Returns:
-            tensorflow.Tensor: A tensor containing the resampled samples.
+        Returns
+        -------
+            A tensor containing the resampled samples.
         """
         norm_weights = self.normalized_weights
         idx = tf.random.categorical(tf.math.log([norm_weights]), n)
