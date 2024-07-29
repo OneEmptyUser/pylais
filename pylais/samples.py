@@ -283,12 +283,14 @@ class ISSamples:
         """
         Calculate the expected value of the samples raised to the power of `n`.
 
-        Parameters:
+        Parameters
+        ----------
             n: int (optional)
                 The power to raise the samples to. Defaults to 1.
 
-        Returns:
-            tensorflow.Tensor: The expected value of the samples raised to the power of `n`.
+        Returns
+        -------
+            The expected value of the samples raised to the power of `n`.
         """
         samples = self.samples
         # flatted_normalized_weights = self.normalized_weights
@@ -305,7 +307,7 @@ class ISSamples:
                 The function to be applied to the samples.
 
         Returns:
-            tensorflow.Tensor: The expected value of `f` applied to the samples.
+            The expected value of `f` applied to the samples.
         """
         samples = self.samples
         norm = self.normalized_weights[tf.newaxis, :]

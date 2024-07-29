@@ -81,7 +81,8 @@ def all_(flatted_means, flatted_samples, cov):
     Calculate the total denominator as the average of the density evaluation
     of all the proposals on each sample.
     
-    Parameters:
+    Parameters
+    ----------
         flatted_means: tensorflow.Tensor
             The tensor of means with shape (N, T, dim).
         flatted_samples: tensorflow.Tensor
@@ -89,7 +90,8 @@ def all_(flatted_means, flatted_samples, cov):
         cov: tensorflow.Tensor
             The covariance matrix of the proposals with shape (dim, dim).
 
-    Returns:
+    Returns
+    -------
         dens: tensorflow.Tensor
             The tensor of denominators with shape (N, n_samples, 1).
     """
