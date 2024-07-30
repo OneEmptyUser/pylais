@@ -78,11 +78,3 @@ def test_spatial():
         # expected_weights.append(weights_chain.numpy())
     
     assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, tf.eye(2, dtype=tf.float64)))
-    
-    
-    
-    
-    
-    
-    
-# test_all_()
