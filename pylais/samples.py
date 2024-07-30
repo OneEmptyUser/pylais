@@ -78,27 +78,54 @@ class mcmcSamples:
         else:
             print("Run more than one chain.")
         
-    def trace(self, axis=None):
+    def trace(self, chains=None, axis=None):
         """
-        Plot the trace of each chain in the MCMC samples.
+        Plot the traces of MCMC chains for selected dimensions.
 
-        This function plots the trace of each chain in the MCMC samples. It takes an optional argument `axis` which specifies the axis on which to plot the traces. If `axis` is not provided, a new figure and axis are created.
+        This function plots the traces of MCMC chains for the specified dimensions.
+        It takes an optional parameter `chains` which specifies the chains to plot. If not provided,
+        all chains will be plotted. The `chains` parameter can be an integer, a list, or a tuple.
+        If an integer is provided, only the chain with the corresponding index will be plotted. If a list
+        or tuple is provided, only the chains with the corresponding indices will be plotted. The function creates
+        a new axis if `axis` is not provided. The function plots the traces of MCMC chains for the specified
+        chain and returns None.
+        
+        Parameters
+        ----------
+        chains : int, list, tuple, optional
+            The chains to plot. If not provided, all chains will be plotted.
+            - If an integer is provided, only the chain with the corresponding index will be plotted.
+            - If a list or tuple is provided, only the chains with the corresponding indices will be plotted.
+        axis : matplotlib.axes._subplots.AxesSubplot, optional
+            The axis on which to plot the traces. If not provided, a new axis will be created.
 
-        Parameters:
-            axis (optional): The axis on which to plot the traces. Defaults to None.
-
-        Returns:
+        Returns
+        -------
             None
         """
         if axis:
             ax = axis
         else:
             _, ax = plt.subplots()
-    
-        n_chains = self.samples.shape[0]
-        for n in range(n_chains):
-            ax.plot(self.samples[n, :, :])
-            
+
+        if chains is None:
+            chains_to_plot = range(self.samples.shape[0])
+        else:
+            if isinstance(chains, int):
+                chains_to_plot = [chains]
+            elif isinstance(chains, (list, tuple)):
+                chains_to_plot = chains
+            else:
+                raise ValueError("Chains must be an int, a list or a tuple")
+        # n_chains = self.samples.shape[0]
+        
+        labels = []
+        for idim in range(self.samples.shape[2]):
+            for n in chains_to_plot:
+                ax.plot(self.samples[n, :, idim])
+                labels.append(r"$\theta_{}^{}$".format(idim, n))
+        ax.legend(labels, ncol=self.samples.shape[2], draggable=True)
+        ax.set_title(f"Traces of {len(chains_to_plot)} MCMC chains")
         plt.show()
         
     def autoCorrPlot(self,chain=0, component=0, max_lag=10, axis=None, plot_args={}):
