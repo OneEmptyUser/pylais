@@ -1,4 +1,6 @@
 from time import time
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0' # THIS IS TO REMOVE A WARNING
 from tensorflow import reshape as tf_reshape
 from tensorflow import function as tf_function
 from tensorflow import constant as tf_constant
@@ -91,8 +93,12 @@ def general_cov(cov):
             cov = tf.cast(cov, dtype=tf.float64)
             mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
     else:
+        # if it is just a tensor
+        if cov.ndim == 1:
+            cov = tf.cast(cov, dtype=tf.float64)
+            mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
         # if it is a matrix with one row or one column
-        if (cov.shape[0]==1 and cov.shape[1]>1) or (cov.shape[0]>1 and cov.shape[1]==1):
+        elif (cov.shape[0]==1 and cov.shape[1]>1) or (cov.shape[0]>1 and cov.shape[1]==1):
             # cov = tf.linalg.diag(tf.squeeze(cov))
             cov = tf.cast(cov, dtype=tf.float64)
             mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
