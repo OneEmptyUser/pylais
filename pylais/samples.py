@@ -137,22 +137,24 @@ class mcmcSamples:
         This function plots the autocorrelation of a given dimension of the MCMC samples and a given chain.
         The autocorrelation is calculated for a range of lags up to a maximum specified by the `max_lag` parameter.
         The resulting autocorrelation values are plotted as a stem plot.
+        
+        Parameters
+        ----------
+        chain : int, optional
+            The index of the chain to plot the autocorrelation for. Defaults to 0.
+        component : int, optional
+            The index of the component to plot the autocorrelation for. Defaults to 0.
+        max_lag : int, optional
+            The maximum lag to calculate the autocorrelation up to. Defaults to 10.
+        axis : matplotlib.axes._subplots.AxesSubplot, optional
+            The axis on which to plot the autocorrelation. If not provided, a new axis will be created.
+        plot_args : dict, optional
+            Additional arguments to pass to the `ax.stem` function. Defaults to an empty dictionary.
 
-        Parameters:
-            chain: int, (optional) 
-                The index of the chain to plot the autocorrelation for. Defaults to 0.
-            component: int, (optional)
-                The index of the component to plot the autocorrelation for. Defaults to 0.
-            max_lag: int, (optional)
-                The maximum lag to calculate the autocorrelation up to. Defaults to 10.
-            axis: (optional)
-                The axis to plot the autocorrelation on. If not provided, a new figure and axis are created.
-            plot_args: dict, (optional)
-                Additional arguments to pass to the `ax.stem` function. Defaults to an empty dictionary.
-
-        Returns:
+        Returns
+        -------
             None
-        """
+        """        
         
         if axis:
             ax = axis
@@ -169,6 +171,9 @@ class mcmcSamples:
 
         correlations = list(map(calculateCorrelation, lags))
         ax.stem(lags, correlations, **plot_args)
+        ax.set_title(f"Autocorrelation plot of chain {chain} component {component}")
+        ax.set_xlabel("Lag")
+        ax.set_ylabel("Correlation")
         plt.show()
         
     
