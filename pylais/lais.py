@@ -204,6 +204,7 @@ class Lais:
         N, n_iter, dim = means.shape
         repeated_means = repeatTensor3D(means, n_per_sample)
         flatted_repeated_means = flatTensor3D(repeated_means)
+        flatted_means = flatTensor3D(means)
         mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=tf.zeros(dim, dtype=tf.float64),
                                                                  covariance_matrix=cov)
         
@@ -220,7 +221,7 @@ class Lais:
         elif den == "spatial":
             denominator = spatial(means, samples, cov)
         else:
-            denominator  = all_(flatted_repeated_means, flatted_samples, cov)
+            denominator  = all_(flatted_means, flatted_samples, cov)
         print("Calculating denominators: done")
         weights = numerator/denominator
         
