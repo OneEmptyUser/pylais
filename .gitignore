@@ -3,3 +3,4 @@ pylais.egg-info/*
 pylais/__pycache__
 docs/build/*
 docs/build
+tests/__pycache__
