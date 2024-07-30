@@ -2,6 +2,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from numpy import corrcoef
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 import tensorflow_probability as tfp
 # from tfp.stats import correlation
 
