@@ -94,7 +94,7 @@ class Lais:
         return ImpSamples
     
     
-    def upper_layer(self, n_iter, N, initial_points, method="rw", mcmc_settings={}):
+    def upper_layer(self, n_iter, N, initial_points, method="mcmc", mcmc_settings={}):
         """
         Run the upper layer of the algorithm.
         
@@ -110,7 +110,7 @@ class Lais:
         initial_points: tensorflow.Tensor
             The initial points for the MCMC chains. It is a tf.Tensor of shape (N, dim).
         method: str, (optional)
-            The method to use in the upper layer. Defaults to "rw".
+            The method to use in the upper layer. Defaults to "mcmc".
         mcmc_settings: dict, (optional)
             Additional settings for the MCMC method. Defaults to an empty dictionary.
 
