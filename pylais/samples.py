@@ -89,7 +89,7 @@ class mcmcSamples:
         If an integer is provided, only the chain with the corresponding index will be plotted. If a list
         or tuple is provided, only the chains with the corresponding indices will be plotted. The function creates
         a new axis if `axis` is not provided. The function plots the traces of MCMC chains for the specified
-        chain and returns None.
+        chain and returns None. In the legend the subscript stands for the component and the superscript for the chain.
         
         Parameters
         ----------
@@ -127,6 +127,7 @@ class mcmcSamples:
                 labels.append(r"$\theta_{}^{}$".format(idim, n))
         ax.legend(labels, ncol=self.samples.shape[2], draggable=True)
         ax.set_title(f"Traces of {len(chains_to_plot)} MCMC chains")
+        ax.set_xlabel("Iteration")
         plt.show()
         
     def autoCorrPlot(self,chain=0, component=0, max_lag=10, axis=None, plot_args={}):
