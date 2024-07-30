@@ -25,6 +25,10 @@ There are three options for the function :math:`\Phi` to be calculated:
 
 .. autofunction:: pylais.denominators.all_
 
+The sampling procedure is triggered through the method
+
+.. automethod:: pylais.Lais.lower_layer
+
 Importance Sampling outputs
 ---------------------------
 
@@ -47,7 +51,8 @@ the posterior:
 #. .. py:property:: pylais.samples.ISSamples.Z
 
       Return the value of marginal likelihood of the posterior
+#. .. automethod:: pylais.samples.ISSamples.moment_n
+#. .. automethod:: pylais.samples.ISSamples.expected_f
+#. .. py:property:: pylais.samples.ISSamples.ess
 
-
-.. #. .. autofunction:: pylais.samples.ISSamples.moment_n
-.. #. .. autofunction:: pylais.samples.ISSamples.expected_f
+    Return the effective sample size (ESS) of the samples.
