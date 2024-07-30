@@ -4,7 +4,7 @@ The MCMC layer
 In the first part of LAIS the proposal densities are adapted to the target density, i.e., the posterior. This adaptation
 is performed with the ``upper_layer`` method.
 
-.. autofunction:: pylais.Lais.upper_layer
+.. automethod:: pylais.Lais.upper_layer
 
 This method can adapt more than one chain to the target distribution as long as we pass **N** initial points.
 This points must have the shape **(N, dim)** with **dim** being the dimension of the parameter space.
