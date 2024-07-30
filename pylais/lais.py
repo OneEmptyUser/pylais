@@ -212,17 +212,17 @@ class Lais:
         samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
         
         # calculate the denominators
-        print("Calculating denominators: numerator")
+        print("Calculating weights: numerator")
         numerator = tf.map_fn(fn=logposterior, elems=flatted_samples)
         numerator = tf.exp(numerator)
-        print("Calculating denominators: denominator")
+        print("Calculating weights: denominator")
         if den == "temporal":
             denominator = temporal(means, samples, cov)
         elif den == "spatial":
             denominator = spatial(means, samples, cov)
         else:
             denominator  = all_(flatted_means, flatted_samples, cov)
-        print("Calculating denominators: done")
+        print("Calculating weights: done")
         weights = numerator/denominator
         
         self.samples = samples
