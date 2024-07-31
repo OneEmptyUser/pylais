@@ -1,7 +1,7 @@
 import tensorflow as tf
 # from tensorflow_probability.distributions import MultivariateNormalFullCovariance as mvn
 import tensorflow_probability as tfp
-mvn = tfp.distributions.MultivariateNormalFullCovariance
+mvn = tfp.distributions.MultivariateNormalTriL
 
 def spatial(means, samples, cov):
     """
@@ -34,7 +34,7 @@ def spatial(means, samples, cov):
     for n in range(N):
         for t in range(n_samples):
             dens.append(
-                tf.math.reduce_mean(mvn(loc=samples[n, t, :], covariance_matrix=cov).prob(means[:, t//k, :]))
+                tf.math.reduce_mean(mvn(loc=samples[n, t, :], scale_tril=tf.linalg.cholesky(cov)).prob(means[:, t//k, :]))
                 )
     dens = tf.stack(dens) 
     return dens
@@ -68,7 +68,7 @@ def temporal(means, samples, cov):
     for n in range(N):
         for t in range(n_samples):
             dens.append(
-                tf.math.reduce_mean(mvn(loc=samples[n, t, :], covariance_matrix=cov).prob(means[n, :, :]))
+                tf.math.reduce_mean(mvn(loc=samples[n, t, :], scale_tril=tf.linalg.cholesky(cov)).prob(means[n, :, :]))
                 )
             
     dens = tf.stack(dens)
@@ -96,7 +96,7 @@ def all_(flatted_means, flatted_samples, cov):
             The tensor of denominators with shape (N, n_samples, 1).
     """
     aux_fn = tf.function(
-        lambda x: tf.math.reduce_mean(mvn(loc=x, covariance_matrix=cov).prob(flatted_means))
+        lambda x: tf.math.reduce_mean(mvn(loc=x, scale_tril=tf.linalg.cholesky(cov)).prob(flatted_means))
         )
     
     dens = tf.map_fn(

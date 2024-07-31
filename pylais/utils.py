@@ -103,7 +103,8 @@ def general_cov(cov):
             cov = tf.cast(cov, dtype=tf.float64)
             mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
         else:
-            mvn = tfp.distributions.MultivariateNormalFullCovariance(covariance_matrix=cov)
+            mvn = tfp.distributions.MultivariateNormalTriL(scale_tril=tf.linalg.cholesky(cov))
+            # mvn = tfp.distributions.MultivariateNormalFullCovariance(covariance_matrix=cov)
     def new_state_fn(state_parts, seed_list):
         next_state_parts = [
             state_part + mvn.sample()

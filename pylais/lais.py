@@ -205,8 +205,10 @@ class Lais:
         repeated_means = repeatTensor3D(means, n_per_sample)
         flatted_repeated_means = flatTensor3D(repeated_means)
         flatted_means = flatTensor3D(means)
-        mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=tf.zeros(dim, dtype=tf.float64),
-                                                                 covariance_matrix=cov)
+        # mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=tf.zeros(dim, dtype=tf.float64),
+        #                                                          covariance_matrix=cov)
+        mvn = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
+                                                       scale_tril=tf.linalg.cholesky(cov))
         
         flatted_samples = mvn.sample(n_per_sample*n_iter*N) + flatted_repeated_means
         samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
