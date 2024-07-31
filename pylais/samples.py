@@ -433,22 +433,36 @@ class ISSamples:
         else:
             raise StopIteration
     
-    def resample(self, n):
+    def resample(self, n, seed=None):
         """
-        Resamples the samples based on the given number of samples.
+        Resample the IS samples.
+
+        This function resamples the IS samples by randomly selecting `n` samples from the current set of samples.
+        The resampling is done based on the normalized weights of the samples. The function returns a new instance
+        of the ISSamples class containing the resampled samples. The weights of the new samples are set to 1.
 
         Parameters
         ----------
-            n : int
-                The number of samples to resample.
+        n : int
+            The number of samples to resample.
+        seed : int, optional
+            The random seed to set before resampling. If not provided, no seed is set.
 
         Returns
         -------
-            A tensor containing the resampled samples.
+        ISSamples
+            A new instance of the ISSamples class containing the resampled samples.
         """
+        
+        if seed:
+            tf.random.set_seed(seed)
+            
         norm_weights = self.normalized_weights
         idx = tf.random.categorical(tf.math.log([norm_weights]), n)
-        return tf.gather(self.samples, tf.squeeze(idx))
+        new_samples = tf.gather(self.samples, tf.squeeze(idx))
+        new_weights = tf.ones(n)
+        resampled_samples = ISSamples(new_samples, new_weights)
+        return resampled_samples
     
     def scatter(self, xlim=None, ylim=None, axis=None, dims=(0, 1)):
         """
