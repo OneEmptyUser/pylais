@@ -177,28 +177,65 @@ class mcmcSamples:
         plt.show()
         
     
-    def cumulativeMean(self):
+    def cumulativeMean(self, chains=None, axis=None):
         """
-        Calculate and plot the cumulative mean of the samples along each chain.
+        Plot the cumulative means of the selected MCMC chains.
 
-        This function calculates the cumulative mean of the samples along each chain and plots the result.
-        The cumulative mean is calculated by taking the cumulative sum of the samples along the first axis
-        (i.e., the chain axis) and dividing it by the range of indices from 1 to the number of iterations.
-        The resulting cumulative means are then plotted using matplotlib.
+        This function plots the cumulative means of MCMC chains for the specified dimensions.
+        It takes an optional parameter `chains` which specifies the chains to plot. If not provided,
+        all chains will be plotted. The `chains` parameter can be an integer, a list, or a tuple, with
+        the indices of the chains to plot. The function creates a new axis if `axis` is not provided.
+        In the legend the subscript stands for the component and the superscript for the chain.
 
         Parameters
         ----------
-            None
+        chains : int, list, tuple, optional
+            The chains to plot. If not provided, all chains will be plotted.
+            - If an integer is provided, only the chain with the corresponding index will be plotted.
+            - If a list or tuple is provided, only the chains with the corresponding indices will be plotted.
+        axis : matplotlib.axes._subplots.AxesSubplot, optional
+            The axis on which to plot the cumulative means. If not provided, a new axis will be created.
+
+        Raises
+        ------
+        ValueError
+            If the `chains` parameter is not an integer, a list, or a tuple.
+            If a chain index is out of range.
 
         Returns
         -------
-            None
+        None
         """
+
+        if axis:
+            ax = axis
+        else:
+            _, ax = plt.subplots()
+        
+        n_chains, iterations, dim = self.samples.shape
+        
+        if not chains:
+            chains_to_plot = range(n_chains)
+        else:
+            if isinstance(chains, int):
+                chains_to_plot = [chains]
+            elif isinstance(chains, (list, tuple)):
+                chains_to_plot = chains
+            else:
+                raise ValueError("Chains must be an int, a list or a tuple")
         dType = self.samples.dtype
-        n_chains, iterations, _ = self.samples.shape
-        for n in range(n_chains):
-            plt.plot(tf.math.cumsum(self.samples[n, :, :], axis=0)/tf.range(1, iterations+1,
-                                                                            dtype=dType)[:, tf.newaxis])
+        
+        
+        labels = []
+        for idim in range(dim):
+            for n in chains_to_plot:
+                ax.plot(tf.math.cumsum(self.samples[n, :, idim])/tf.range(1, iterations+1,
+                                                                            dtype=dType))
+                labels.append(r"$\theta_{}^{}$".format(idim, n))
+        ax.set_title("Cumulative mean of {} MCMC chains".format(len(chains_to_plot)))
+        ax.legend(labels, ncol=dim, draggable=True)
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Cumulative mean")
         plt.show()
     
     def scatter(self, xlim=None, ylim=None, axis=None):
