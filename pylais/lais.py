@@ -8,17 +8,19 @@ from.samples import ISSamples, mcmcSamples
 class Lais:
     """Class that implements the LAIS algorithm.
     
-    Attributes:
-        loglikelihood: function
+    Attributes
+    ----------
+        loglikelihood : function
             A function that calculates the log likelihood of the model.
-        logprior: function
+        logprior : function
             A function that calculates the log prior of the model.
-        logposterior: function
+        logposterior : function
             A function that calculates the log posterior of the model.
-        Z: float
+        Z : float
             The marginal likelihood of the model.
             
-    Methods:
+    Methods
+    -------
         __str__(self)
         main(self, n_iter, N, initial_points, upper_settings={}, lower_settings = {})
             Runs the complete algorithm, from the upper layer to the lower layer.
@@ -28,8 +30,6 @@ class Lais:
             Allows to skip the MCMC layer. The user can the MCMC chains as if they were from the upper layer.
         lower_layer(self, cov, n_per_sample, den="all")
             Runs the IS layer.
-        logposterior(theta)
-            Calculates the log posterior of the model.
         resample(self, n)
             Resamples the samples based on the given number of samples. Calls the method in the ISSamples class.
     """
