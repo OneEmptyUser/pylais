@@ -478,7 +478,7 @@ class ISSamples:
             A new instance of the ISSamples class containing the resampled samples.
         """
         
-        if seed:
+        if seed is not None:
             tf.random.set_seed(seed)
             
         norm_weights = self.normalized_weights
