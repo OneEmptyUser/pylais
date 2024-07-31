@@ -320,32 +320,41 @@ class mcmcSamples:
         plt.show()
     
 class ISSamples:
-    """Class for Importance Sampling samples.
+    """
+    Class for the Importance Sampling samples.
     
- 
     Attributes
     ----------
-        samples : tensorflow.Tensor
-            A tensor of shape (n_chains, n_iter, n_params)
-        containing the samples.
-        weights : tensorflow.Tensor
-            A tensor of shape (n_chains, n_iter)
-        normalized_weights : tensorflow.Tensor
-            A tensor of shape (n_chains, n_iter) equals to weights / tf.reduce_sum(weights)
+        samples : tf.Tensor
+            The samples.
+        weights : tf.Tensor
+            The weights corresponding to the samples.
+        normalized_weights : tf.Tensor
+            The normalized weights.
+        ess : float
+            The effective sample size.
+        Z : float
+            The marginal likelihood estimate.
     
     Methods
     -------
+        __len__(self)
+            Return the number of samples in the instance.
+        __getitem__(self, key)
+            Get an item from the ISSamples object.
+        __iter__(self)
+            Iterate over the samples in the instance.
+        next(self)
         __str__(self)
-        resample(self, n)
-            Resample the samples.
-        ess(self)
-            Calculate the effective sample size.
-        Z(self)
-            Calculate the mean value of the weights.
+            Return a string representation of the ISSamples object.
+        resample(self, n, seed=None)
+            Make a new instance of the ISSamples class with resampled samples.
+        scatter(self, xlim=None, ylim=None, chains=None, axis=None, dims=(0, 1))
+            Plot a scatter plot of the samples.
         moment_n(self, n=1)
             Calculate the n-th moment of the samples.
         expected_f(self, f)
-            Calculate the expected value of the function f evaluated at the samples.
+            Calculate the expected value of the function f at the samples.
     """
     
     def __init__(self, samples, weights):
