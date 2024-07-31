@@ -531,34 +531,42 @@ class ISSamples:
     @property
     def ess(self):
         """
-        Calculate the effective sample size (ESS) of the samples.
+        Compute the effective sample size (ESS) of the Importance Sampling samples.
 
-        Returns:
-            float: The effective sample size.
+        Returns
+        -------
+        float
+            The effective sample size.
         """
-        return 1 / tf.math.reduce_sum(tf.math.square(self.normalized_weights))
+        return (1 / tf.math.reduce_sum(tf.math.square(self.normalized_weights))).numpy()
     @property
     def Z(self):
         """
-        Calculate the mean value of the weights.
+        Calculate the marginal likelihood.
+        
+        The marginal likelihood as defined in IS literature can be calculated as
+        the mean of the importance weights.
 
-        Returns:
-            float: The mean value of the weights.
+        Returns
+        -------
+        tf.Tensor
+            The mean of the `weights` attribute.
         """
         return tf.math.reduce_mean(self.weights)
     
     def moment_n(self, n=1):
         """
-        Calculate the expected value of the samples raised to the power of `n`.
+        Calculate the n-th moment of the Importance Sampling samples.
 
         Parameters
         ----------
-            n: int (optional)
-                The power to raise the samples to. Defaults to 1.
+        n : int, optional
+            The order of the moment. Default is 1.
 
         Returns
         -------
-            The expected value of the samples raised to the power of `n`.
+        tf.Tensor
+            The n-th moment of the samples.
         """
         samples = self.samples
         # flatted_normalized_weights = self.normalized_weights
@@ -568,14 +576,17 @@ class ISSamples:
     
     def expected_f(self, f):
         """
-        Calculate the expected value of the function `f` applied to the samples.
+        Estimates the expected value of a function with respect to the target distribution.
 
-        Parameters:
-            f: (function)
-                The function to be applied to the samples.
+        Parameters
+        ----------
+        f : callable
+            The function to be applied to each sample.
 
-        Returns:
-            The expected value of `f` applied to the samples.
+        Returns
+        -------
+        tf.Tensor
+            The expected value of the function applied to the samples.
         """
         samples = self.samples
         norm = self.normalized_weights[tf.newaxis, :]
