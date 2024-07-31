@@ -238,37 +238,85 @@ class mcmcSamples:
         ax.set_ylabel("Cumulative mean")
         plt.show()
     
-    def scatter(self, xlim=None, ylim=None, axis=None):
+    def scatter(self, xlim=None, ylim=None, chains=None, axis=None, dims=(0, 1)):
         """
-        Plot the samples as a scatter plot.
+        Plot a scatter plot of the MCMC samples.
+        
+        The user can choose which chains to plot. By default all chains will be plotted.
+        The first two dimensions are plotted by default, but the user can choose different dimensions
+        changing the `dims` parameter. If an axis is not provided, a new one will be created.
 
-        This function plots the samples as a scatter plot using matplotlib. The samples are plotted as points in a 2D space, so
-        if the dimension of the samples is larger that 2, only the first two dimensions are plotted.
+        Parameters
+        ----------
+        xlim : tuple, optional
+            The x-axis limits of the plot. Defaults to None.
+        ylim : tuple, optional
+            The y-axis limits of the plot. Defaults to None.
+        chains : int, list, tuple, optional
+            The chains to plot. If not provided, all chains will be plotted.
+            - If an integer is provided, only the chain with the corresponding index will be plotted.
+            - If a list or tuple is provided, only the chains with the corresponding indices will be plotted.
+        axis : matplotlib.axes._subplots.AxesSubplot, optional
+            The axis on which to plot the scatter plot. If not provided, a new axis will be created.
+        dims : tuple, optional
+            The dimensions of the samples to plot. Defaults to (0, 1).
 
-        Parameters:
-            xlim: tuple, (optional)
-                The x-axis limits for the plot. Defaults to None.
-            ylim: tuple, (optional)
-                The y-axis limits for the plot. Defaults to None.
-            axis: matplotlib.axes.Axes, (optional)
-                The axis object to plot on. Defaults to None.
+        Raises
+        ------
+        ValueError
+            If `chains` is not an integer, a list, or a tuple.
+        ValueError
+            If trying to access a chain or dimension that does not exist.
 
-        Returns:
-            None
+        Returns
+        -------
+        None
         """
+        
+        
+        # If axis is provided, use it, otherwise create a new one.
         if axis:
             ax = axis
         else:
             _, ax = plt.subplots()
+        
+        # If not chains is provided, all chains will be plotted.
+        if not chains:
+            chains_to_plot = range(self.samples.shape[0])
+        else:
+            # If chains is an integer, only the chain with the corresponding index will be plotted.
+            if isinstance(chains, int):
+                chains_to_plot = [chains]
+            # If chains is a list or tuple, only the chains with the corresponding indices will be plotted.
+            elif isinstance(chains, (list, tuple)):
+                chains_to_plot = chains
+            # If chains is not an integer, a list, or a tuple, an error will be raised.
+            else:
+                raise ValueError("Chains must be an int, a list or a tuple")
+            
+        labels = []
+        # If the samples are 3D, each chain will be plotted as a scatter plot.
         if self.samples.ndim == 3:
-            for i in range(len(self.samples)):
-                ax.scatter(self.samples[i, :, 0], self.samples[i, :, 1], s=2)
+            for n in chains_to_plot:
+                try:
+                    ax.scatter(self.samples[n, :, dims[0]], self.samples[n, :, dims[1]], s=2)
+                except Exception as e:
+                    raise(ValueError(f"Trying to access a chain or dimension that does not exist: {e}"))
+                labels.append("Chain {}".format(n))
+        # If the samples are 2D, plot that chain
         if self.samples.ndim == 2:
-            ax.scatter(self.samples[:, 0], self.samples[:, 1], s=2)
+            ax.scatter(self.samples[:, dims[0]], self.samples[:, dims[1]], s=2)
+        
+        # Set the limits of the plot, if provided.
         if xlim:
             ax.set_xlim(xlim)
         if ylim:
             ax.set_ylim(ylim)
+            
+        ax.set_title("Scatter plot of {} chains".format(len(chains_to_plot)))
+        ax.legend(labels, ncol=1, draggable=True)
+        ax.set_xlabel(r"$\theta_{}$".format(dims[0]))
+        ax.set_ylabel(r"$\theta_{}$".format(dims[1]))
         plt.show()
     
 class ISSamples:
