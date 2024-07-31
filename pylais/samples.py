@@ -346,22 +346,93 @@ class ISSamples:
             Calculate the expected value of the function f evaluated at the samples.
     """
     def __init__(self, samples, weights):
-        """
-        Initializes the ISSamples object with the given samples and weights.
+        def __init__(self, samples, weights):
+            """
+            Initialize an instance of the class.
 
-        Parameters:
-            samples: (tensorflow.Tensor)
-                A tensor of shape (n_chains, n_iter, n_params) containing the samples.
-            weights: (tensorflow.Tensor)
-                A tensor of shape (n_chains, n_iter) containing the weights.
+            Parameters
+            ----------
+            samples : tf.Tensor
+                The samples to be stored in the instance.
+            weights : tf.Tensor
+                The weights corresponding to the samples.
 
-        Returns:
+            Returns
+            -------
             None
-        """
-        self.samples = samples
-        self.weights = weights
-        self.normalized_weights = weights / tf.math.reduce_sum(weights)
+            """
+            self.samples = samples
+            self.weights = weights
+            self.normalized_weights = weights / tf.math.reduce_sum(weights)
+            self._index = 0
         
+    def __len__(self):
+        """
+        Return the number of samples in the instance.
+
+        Returns
+        -------
+        int
+            The number of samples in the instance.
+        """
+        return len(self.samples)
+    
+    def __getitem__(self, key):
+        """
+        Get an item from the ISSamples object.
+
+        Parameters
+        ----------
+        key : int or slice
+            The index or slice of the samples to retrieve.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the sample and the corresponding normalized weight.
+        """
+        
+        return self.samples[key], self.normalized_weights[key]
+    
+    def __iter__(self):
+        """
+        Initialize the iterator and set the internal index to 0.
+
+        Returns
+        -------
+        self : Iterator
+            The iterator object.
+        """
+        
+        self._index = 0
+        return self
+    
+    def __next__(self):
+        """
+        Return the next item from the iterator.
+
+        This method is part of the iterator protocol and is called by the built-in function `next()`.
+        It returns the next item from the iterator and increments the internal index.
+        If the internal index is less than the length of the iterator, it returns the item at the current index
+        and increments the index. Otherwise, it raises a `StopIteration` exception.
+
+        Returns
+        -------
+        Any
+            The next item from the iterator.
+
+        Raises
+        ------
+        StopIteration
+            If the internal index is equal to or greater than the length of the iterator.
+        """
+        if self._index < len(self):
+            result = self[self._index]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+    
     def resample(self, n):
         """
         Resamples the samples based on the given number of samples.
