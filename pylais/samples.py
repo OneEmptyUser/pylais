@@ -324,6 +324,7 @@ class ISSamples:
     
  
     Attributes
+    ----------
         samples : tensorflow.Tensor
             A tensor of shape (n_chains, n_iter, n_params)
         containing the samples.
@@ -332,7 +333,8 @@ class ISSamples:
         normalized_weights : tensorflow.Tensor
             A tensor of shape (n_chains, n_iter) equals to weights / tf.reduce_sum(weights)
     
-    Methods:
+    Methods
+    -------
         __str__(self)
         resample(self, n)
             Resample the samples.
@@ -345,27 +347,27 @@ class ISSamples:
         expected_f(self, f)
             Calculate the expected value of the function f evaluated at the samples.
     """
+    
     def __init__(self, samples, weights):
-        def __init__(self, samples, weights):
-            """
-            Initialize an instance of the class.
+        """
+        Initialize an instance of the class.
 
-            Parameters
-            ----------
-            samples : tf.Tensor
-                The samples to be stored in the instance.
-            weights : tf.Tensor
-                The weights corresponding to the samples.
+        Parameters
+        ----------
+        samples : tf.Tensor
+            The samples to be stored in the instance.
+        weights : tf.Tensor
+            The weights corresponding to the samples.
 
-            Returns
-            -------
-            None
-            """
-            self.samples = samples
-            self.weights = weights
-            self.normalized_weights = weights / tf.math.reduce_sum(weights)
-            self._index = 0
-        
+        Returns
+        -------
+        None
+        """
+        self.samples = samples
+        self.weights = weights
+        self.normalized_weights = weights / tf.math.reduce_sum(weights)
+        self._index = 0
+    
     def __len__(self):
         """
         Return the number of samples in the instance.
@@ -432,6 +434,19 @@ class ISSamples:
             return result
         else:
             raise StopIteration
+    
+    def __str__(self):
+        """
+        Return a string representation of the ISSamples object.
+
+        Returns
+        -------
+        str
+            A string representation of the ISSamples object, including the number of samples, the estimated
+            effective sample size (ESS), and the Z-value.
+
+        """
+        return f"{len(self.weights)} Samples class with ESS = {self.ess} and Z = {self.Z}"
     
     def resample(self, n, seed=None):
         """
@@ -567,6 +582,3 @@ class ISSamples:
         f_values = tf.vectorized_map(f, samples)[:, tf.newaxis]
         expected = tf.matmul(norm, f_values)
         return tf.squeeze(expected)
-    
-    def __str__(self):
-        return f"{len(self.weights)} Samples class with ESS = {self.ess} and Z = {self.Z}"
