@@ -3,6 +3,8 @@ Getting started
 
 The main class of ``pylais`` package is the ``Lais``.
 
+.. autoclass:: pylais.lais.Lais
+
 This class allows to define the problem and sample from target density.
 Firs of all, for instanciating the class we need to provide the ``loglikelihood`` of the model and
 the logarithm of the prior, ``logprior``, being this last argument optional.

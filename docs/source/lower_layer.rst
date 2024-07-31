@@ -43,7 +43,7 @@ for the approximation of target density, i.e., the posterior. For simplicity the
 In this manner we can easily approximate the target distribution through a resampling of the 
 sampled samples according to its weight, we can do that with the ``resample`` method.
 
-.. autofunction:: pylais.samples.ISSamples.resample
+.. automethod:: pylais.samples.ISSamples.resample
 
 Besides there exists methods to calculate quantities of interest as the marginal likelihood and the moments of
 the posterior:
