@@ -379,6 +379,55 @@ class ISSamples:
         idx = tf.random.categorical(tf.math.log([norm_weights]), n)
         return tf.gather(self.samples, tf.squeeze(idx))
     
+    def scatter(self, xlim=None, ylim=None, axis=None, dims=(0, 1)):
+        """
+        Plot a scatter plot of the IS samples.
+
+        By default, the function plots the first two dimensions of the samples, but the user can change
+        this by providing the `dims` parameter.
+
+        Parameters
+        ----------
+        xlim : tuple, optional
+            The x-axis limits of the plot.
+        ylim : tuple, optional
+            The y-axis limits of the plot.
+        axis : matplotlib.axes._subplots.AxesSubplot, optional
+            The axis on which to plot the scatter plot. If not provided, a new axis will be created.
+        dims : tuple, optional
+            The dimensions of the samples to plot. Defaults to (0, 1).
+
+        Raises
+        ------
+        ValueError
+            If trying to access a chain or dimension that does not exist.
+
+        Returns
+        -------
+        None
+        """
+        
+        
+        if axis:
+            ax = axis
+        else:
+            _, ax = plt.subplots()
+        
+        try:
+            ax.scatter(self.samples[:, dims[0]], self.samples[:, dims[1]], s=2)
+        except Exception as e:
+            raise(ValueError(f"Trying to access a chain or dimension that does not exist: {e}"))
+        
+        # Set the limits of the plot, if provided.
+        if xlim:
+            ax.set_xlim(xlim)
+        if ylim:
+            ax.set_ylim(ylim)
+            
+        ax.set_title("Scatter plot of the IS samples")
+        ax.set_xlabel(r"$\theta_{}$".format(dims[0]))
+        ax.set_ylabel(r"$\theta_{}$".format(dims[1]))
+        plt.show()
     @property
     def ess(self):
         """
