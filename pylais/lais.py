@@ -161,7 +161,7 @@ class Lais:
         self.MCMCsamples = mcmcSamples(means)
         print("Means set.")
     
-    def lower_layer(self, cov, n_per_sample, den="all"):
+    def lower_layer(self, cov, n_per_sample, den="all", proposal_type="gaussian", df=None):
         """
         Run the lower layer of the LAIS algorithm.
         
@@ -207,10 +207,21 @@ class Lais:
         flatted_means = flatTensor3D(means)
         # mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=tf.zeros(dim, dtype=tf.float64),
         #                                                          covariance_matrix=cov)
-        mvn = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
-                                                       scale_tril=tf.linalg.cholesky(cov))
+        if proposal_type == "student":
+            if df is None:
+               df = dim + 1
+               
+            scale = tf.linalg.cholesky(cov)
+            proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
+                                                                            loc=tf.zeros(dim, dtype=tf.float64),
+                                                                            scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+            
+        if proposal_type == "gaussian":
+            proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
+                                                        scale_tril=tf.linalg.cholesky(cov))
         
-        flatted_samples = mvn.sample(n_per_sample*n_iter*N) + flatted_repeated_means
+        
+        flatted_samples = proposal.sample(n_per_sample*n_iter*N) + flatted_repeated_means
         samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
         
         # calculate the denominators
@@ -218,12 +229,13 @@ class Lais:
         numerator = tf.map_fn(fn=logposterior, elems=flatted_samples)
         numerator = tf.exp(numerator)
         print("Calculating weights: denominator")
+        proposal_settings = {"proposal_type": proposal_type, "df": df, "cov": cov}
         if den == "temporal":
-            denominator = temporal(means, samples, cov)
+            denominator = temporal(means, samples, proposal_settings)
         elif den == "spatial":
-            denominator = spatial(means, samples, cov)
+            denominator = spatial(means, samples, proposal_settings)
         else:
-            denominator  = all_(flatted_means, flatted_samples, cov)
+            denominator  = all_(flatted_means, flatted_samples, proposal_settings)
         print("Calculating weights: done")
         weights = numerator/denominator
         
