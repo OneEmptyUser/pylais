@@ -67,3 +67,85 @@ def test_upper_targets():
         errors.append(f"Error in upper_layer:\n{e}")
         pytest.fail(f"Error in upper_layer:\n{e}")
     assert not errors
+    
+def test_upper_hmc():
+    N, T, dim = 3, 10, 2
+    initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
+    mcmc_settings = {
+        "method": "hmc",
+        "step_size": 0.01,
+        "num_leapfrog_steps": 10,
+        }
+    targets = create_targets()
+    errors = []
+    try:
+        myLais = Lais(target)
+        means = myLais.upper_layer(T, N, initial_points,mcmc_settings["method"],
+                                   mcmc_settings, targets=targets)
+        if means.samples.shape != (N, T, dim):
+            raise(Exception("Error with the shape of means"))
+    except Exception as e:
+        errors.append(f"Error in upper_layer:\n{e}")
+        pytest.fail(f"Error in upper_layer:\n{e}")
+    assert not errors
+    
+def test_upper_mala():
+    N, T, dim = 3, 10, 2
+    initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
+    mcmc_settings = {
+        "method": "mala",
+        "step_size": 0.01
+        }
+    targets = create_targets()
+    errors = []
+    try:
+        myLais = Lais(target)
+        means = myLais.upper_layer(T, N, initial_points,mcmc_settings["method"],
+                                   mcmc_settings, targets=targets)
+        if means.samples.shape != (N, T, dim):
+            raise(Exception("Error with the shape of means"))
+    except Exception as e:
+        errors.append(f"Error in upper_layer:\n{e}")
+        pytest.fail(f"Error in upper_layer:\n{e}")
+    assert not errors
+    
+def test_upper_nuts():
+    N, T, dim = 3, 10, 2
+    initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
+    mcmc_settings = {
+        "method": "nuts",
+        "step_size": 0.01
+        }
+    targets = create_targets()
+    errors = []
+    try:
+        myLais = Lais(target)
+        means = myLais.upper_layer(T, N, initial_points,mcmc_settings["method"],
+                                   mcmc_settings, targets=targets)
+        if means.samples.shape != (N, T, dim):
+            raise(Exception("Error with the shape of means"))
+    except Exception as e:
+        errors.append(f"Error in upper_layer:\n{e}")
+        pytest.fail(f"Error in upper_layer:\n{e}")
+    assert not errors
+    
+def test_upper_slice():
+    N, T, dim = 3, 10, 2
+    initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
+    mcmc_settings = {
+        "method": "slice",
+        "step_size": 0.01,
+        "max_doublings": 10
+        }
+    targets = create_targets()
+    errors = []
+    try:
+        myLais = Lais(target)
+        means = myLais.upper_layer(T, N, initial_points,mcmc_settings["method"],
+                                   mcmc_settings, targets=targets)
+        if means.samples.shape != (N, T, dim):
+            raise(Exception("Error with the shape of means"))
+    except Exception as e:
+        errors.append(f"Error in upper_layer:\n{e}")
+        pytest.fail(f"Error in upper_layer:\n{e}")
+    assert not errors
