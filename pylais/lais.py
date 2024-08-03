@@ -1,8 +1,8 @@
-from .utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, returnKernel
+from pylais.utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, returnKernel
 import tensorflow as tf
 import tensorflow_probability as tfp
-from .denominators import all_, temporal, spatial
-from.samples import ISSamples, mcmcSamples
+from pylais.denominators import all_, temporal, spatial
+from pylais.samples import ISSamples, mcmcSamples
 
 
 class Lais:
@@ -94,34 +94,45 @@ class Lais:
         return ImpSamples
     
     
-    def upper_layer(self, n_iter, N, initial_points, method="mcmc", mcmc_settings={}):
+    def upper_layer(self, n_iter, N, initial_points, method="mcmc", mcmc_settings={}, targets=[]):
         """
         Run the upper layer of the algorithm.
         
         This function runs the MCMC layer, and adapt the proposals needed in the lower layer with an MCMC algorithm,
-        which consists of adapting the MCMC chains to the target distribution.
+        which consists of adapting the MCMC chains to the target distribution. If `targets` is not empty, the MCMC chains
+        take as invariant density the function in `targets` that take that index, i.e, chain `n` has as invariant density
+        the function `targets[n]`. If it is empty, all chains will have as invariant density the posterior.
 
         Parameters
         ----------
-        n_iter: int
+        n_iter : int
             The number of iterations for the upper layer.
-        N: int
+        N : int
             The number of MCMC chains to run in the upper layer.
-        initial_points: tensorflow.Tensor
+        initial_points : tensorflow.Tensor
             The initial points for the MCMC chains. It is a tf.Tensor of shape (N, dim).
-        method: str, (optional)
+        method : str, optional
             The method to use in the upper layer. Defaults to "mcmc".
-        mcmc_settings: dict, (optional)
+        mcmc_settings : dict, optional
             Additional settings for the MCMC method. Defaults to an empty dictionary.
+        targets : list, optional
+            The functions to use as invariant distributions of the MCMC chains. Defaults to an empty list.
 
         Returns
         -------
         mcmcSamples
             The MCMC samples obtained from the upper layer.
 
-        Raises:
-            Exception: If the number of initial points is not equal to N.
+        Raises
+        ------
+        Exception
+            If the number of initial points is not equal to N.
+        Exception
+            If `targets` is not a list of functions.
+        Exception
+            If `targets` is not empty and its length is not equal to N.
         """
+        
         # get dimensions of the problem
         _, dim = initial_points.shape
         try:
@@ -133,10 +144,24 @@ class Lais:
         #     target_log_prob_fn=self.logposterior
         # )
         kernel = returnKernel(method, self.logposterior, mcmc_settings)
+        
+        if targets:
+            if not isinstance(targets, list):
+                raise("`targets` must be a list of functions.")
+            
+            print("Using the functions in `targets` as invariant distributions of the MCMC chains.")
+            
+            if len(targets) != N:
+                raise("When using `targets`, `N` must be equal to the number of targets.")
+            kernels = [
+                returnKernel(method, targets[ikernel], mcmc_settings) for ikernel in range(len(targets))
+            ]
+        else:
+            kernels = N*[returnKernel(method, self.logposterior, mcmc_settings)]
         means = []
         for n in range(N):
             init = initial_points[n]
-            aux_means, _ = run_mcmc(kernel, n_iter, num_burnin_steps=0,
+            aux_means, _ = run_mcmc(kernels[n], n_iter, num_burnin_steps=0,
                                  current_state=init)
             means.append(aux_means)
         
