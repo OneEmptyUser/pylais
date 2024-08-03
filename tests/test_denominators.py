@@ -41,30 +41,78 @@ samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
 
 def test_all_():
     
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
     expected_weights = []
     for n in range(flatted_samples.shape[0]):
         mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=flatted_samples[n],
-                                                                 covariance_matrix=tf.eye(2, dtype=tf.float64))
+                                                                 covariance_matrix=cov)
         expected_weights.append(tf.math.reduce_mean(mvn.prob(flatted_means)).numpy())
     
-    assert tf.reduce_all(tf.constant(expected_weights) == all_(flatted_means, flatted_samples, tf.eye(2, dtype=tf.float64)))
+    
+    
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    assert tf.reduce_all(tf.constant(expected_weights) == all_(flatted_means, flatted_samples, proposal_settings))
+    
+def test_all_student():
+    
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    scale = tf.linalg.cholesky(cov)
+    df = 10
+    expected_weights = []
+    for n in range(flatted_samples.shape[0]):
+        mvt = tfp.distributions.MultivariateStudentTLinearOperator(df=df,
+                                                                   loc=flatted_samples[n],
+                                                                   scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+        expected_weights.append(tf.math.reduce_mean(mvt.prob(flatted_means)).numpy())
+    
+    
+    
+    proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
+    # assert tf.reduce_all(tf.constant(expected_weights) == all_(flatted_means, flatted_samples, proposal_settings))
+    assert tf.reduce_all(abs(tf.constant(expected_weights) - all_(flatted_means, flatted_samples, proposal_settings))<1e-10)
     
 def test_temporal():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
     expected_weights = []
     for n in range(samples.shape[0]):
         # weights_chain = []
         for t in range(samples.shape[1]):
             loc = samples[n, t, :]
             mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
-                                                                     covariance_matrix=tf.eye(2, dtype=tf.float64))
+                                                                     covariance_matrix=cov)
             expected_weights.append(tf.math.reduce_mean(mvn.prob(fake_means[n, :, :])).numpy())
         # weights_chain = tf.stack(weights_chain)
         # expected_weights.append(weights_chain.numpy())
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    assert tf.reduce_all(tf.constant(expected_weights) == temporal(fake_means, samples, proposal_settings))
     
-    assert tf.reduce_all(tf.constant(expected_weights) == temporal(fake_means, samples, tf.eye(2, dtype=tf.float64)))
+def test_temporal_student():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    scale = tf.linalg.cholesky(cov)
+    df = 10
+    expected_weights = []
+    for n in range(samples.shape[0]):
+        # weights_chain = []
+        for t in range(samples.shape[1]):
+            loc = samples[n, t, :]
+            mvt = tfp.distributions.MultivariateStudentTLinearOperator(df=df,
+                                                                       loc=loc,
+                                                                       scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+            expected_weights.append(tf.math.reduce_mean(mvt.prob(fake_means[n, :, :])).numpy())
+        # weights_chain = tf.stack(weights_chain)
+        # expected_weights.append(weights_chain.numpy())
+    proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
+    # assert tf.reduce_all(tf.constant(expected_weights) == temporal(fake_means, samples, proposal_settings))
+    assert tf.reduce_all(abs(tf.constant(expected_weights) - temporal(fake_means, samples, proposal_settings)) < 1e-10)
         
 
 def test_spatial():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
     expected_weights = []
     
     n_per_sample = samples.shape[1]//fake_means.shape[1]
@@ -72,9 +120,31 @@ def test_spatial():
         for t in range(samples.shape[1]):
             loc = samples[n, t, :]
             mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
-                                                                     covariance_matrix=tf.eye(2, dtype=tf.float64))
+                                                                     covariance_matrix=cov)
             expected_weights.append(tf.math.reduce_mean(mvn.prob(repeated_means[:, t, :])).numpy())
         # weights_chain = tf.stack(weights_chain)
         # expected_weights.append(weights_chain.numpy())
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, proposal_settings))
     
-    assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, tf.eye(2, dtype=tf.float64)))
+
+def test_spatial_student():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    expected_weights = []
+    scale = tf.linalg.cholesky(cov)
+    df = 10
+    n_per_sample = samples.shape[1]//fake_means.shape[1]
+    for n in range(samples.shape[0]):
+        for t in range(samples.shape[1]):
+            loc = samples[n, t, :]
+            mvt = tfp.distributions.MultivariateStudentTLinearOperator(df=df,
+                                                                       loc=loc,
+                                                                       scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+            expected_weights.append(tf.math.reduce_mean(mvt.prob(repeated_means[:, t, :])).numpy())
+        # weights_chain = tf.stack(weights_chain)
+        # expected_weights.append(weights_chain.numpy())
+    proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
+    # assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, proposal_settings))
+    assert tf.reduce_all(abs(tf.constant(expected_weights) - spatial(fake_means, samples, proposal_settings)) < 1e-10)
+# test_temporal_student()    
