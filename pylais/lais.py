@@ -311,3 +311,53 @@ class Lais:
             return self.IS_samples.Z
         else:
             return "No IS samples"
+        
+        
+    def histogram(self, n_samples, dimensions=(0,1), axis=None, **hist_args):
+        """
+        Generate a histogram plot of the IS samples.
+
+        Parameters
+        ----------
+        n_samples : int
+            The number of samples to resample.
+        dimensions : tuple, optional
+            The dimensions of the samples to plot. Defaults to (0, 1). To get the histogram
+            of only one component `n` use `(n,)`.
+        axis : matplotlib.axes._subplots.AxesSubplot, optional
+            The axis on which to plot the histogram. If not provided, a new axis will be created. Defaults to None.
+        **hist_args
+            Additional keyword arguments to pass to the histogram function.
+
+        Returns
+        -------
+        None
+        """
+        
+        if "IS_samples" not in self.__dict__:
+            raise("No IS samples.")
+
+        if axis:
+            ax = axis
+        else:
+            fig, ax = plt.subplots()
+
+        samples = self.resample(n_samples)
+        if len(dimensions) == 2:
+            hist = ax.hist2d(samples.samples[:, dimensions[0]], samples.samples[:, dimensions[1]],
+                      bins=int(tf.math.sqrt(tf.cast(n_samples, dtype=tf.float32)).numpy()),
+                      cmap='Blues',
+                      density=True,
+                      **hist_args)
+            plt.colorbar(hist[3], ax=ax, shrink=0.8)
+            ax.set_xlabel(r"$\theta_{}$".format(dimensions[0]))
+            ax.set_ylabel(r"$\theta_{}$".format(dimensions[1]))
+        elif len(dimensions) == 1:
+            ax.hist(samples.samples[:, dimensions[0]],
+                    bins=int(tf.math.sqrt(tf.cast(n_samples, dtype=tf.float32)).numpy()),
+                    density=True,
+                    **hist_args
+                    )
+            ax.set_xlabel(r"$\theta_{}$".format(dimensions[0]))
+        ax.set_title(f"IS histogram of {n_samples} resampled samples")
+        plt.show()
