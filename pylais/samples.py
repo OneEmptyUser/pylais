@@ -484,7 +484,7 @@ class ISSamples:
         norm_weights = self.normalized_weights
         idx = tf.random.categorical(tf.math.log([norm_weights]), n)
         new_samples = tf.gather(self.samples, tf.squeeze(idx))
-        new_weights = tf.ones(n)
+        new_weights = tf.ones(n, dtype=new_samples.dtype)
         resampled_samples = ISSamples(new_samples, new_weights)
         return resampled_samples
     
