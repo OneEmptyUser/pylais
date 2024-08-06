@@ -140,6 +140,9 @@ class Lais:
         if initial_points.dtype not in [tf.float32, tf.float64]:
             initial_points = tf.cast(initial_points, tf.float64)
         
+        if mcmc_settings.get("cov") is not None:
+            mcmc_settings["cov"] = tf.cast(mcmc_settings["cov"], initial_points.dtype)
+           
         # get dimensions of the problem
         _, dim = initial_points.shape
         try:
@@ -150,7 +153,7 @@ class Lais:
         # kernel = tfp.mcmc.RandomWalkMetropolis(
         #     target_log_prob_fn=self.logposterior
         # )
-        kernel = returnKernel(method, self.logposterior, mcmc_settings)
+        # kernel = returnKernel(method, self.logposterior, mcmc_settings)
         
         if targets:
             if not isinstance(targets, list):
@@ -233,6 +236,7 @@ class Lais:
         def logposterior(theta):
             return self.logposterior(theta)
         means = self.MCMCsamples.samples
+        dType = means.dtype
         N, n_iter, dim = means.shape
         repeated_means = repeatTensor3D(means, n_per_sample)
         flatted_repeated_means = flatTensor3D(repeated_means)
@@ -245,16 +249,16 @@ class Lais:
                
             scale = tf.linalg.cholesky(cov)
             proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
-                                                                            loc=tf.zeros(dim, dtype=tf.float64),
+                                                                            loc=tf.zeros(dim, dtype=dType),
                                                                             scale=tf.linalg.LinearOperatorLowerTriangular(scale))
             
         if proposal_type == "gaussian":
-            proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
+            proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
                                                         scale_tril=tf.linalg.cholesky(cov))
         
         
         flatted_samples = proposal.sample(n_per_sample*n_iter*N) + flatted_repeated_means
-        samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
+        samples = tf.reshape(flatted_samples, (N, n_iter*n_per_sample, dim))
         
         # calculate the denominators
         print("Calculating weights: numerator")
