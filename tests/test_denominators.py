@@ -170,4 +170,4 @@ def test_spatial_student():
     assert tf.reduce_all(abs(tf.constant(expected_weights) - spatial(fake_means, samples, proposal_settings)) < 1e-10)
 
 
-test_spatial_other()    
+# test_spatial_other()    
