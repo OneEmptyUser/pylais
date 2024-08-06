@@ -127,6 +127,27 @@ def test_spatial():
     proposal_settings = {"proposal_type": "gaussian", "cov": cov}
     assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, proposal_settings))
     
+def test_spatial_other():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    expected_weights = []
+    n_per_sample = samples.shape[1]//fake_means.shape[1]
+    N, n_samples, _ = samples.shape
+    # assert N == 3
+    for n in range(N):
+        for t in range(n_samples):
+            den = 0
+            for iprop in range(N):
+                den += tfp.distributions.MultivariateNormalFullCovariance(
+                    loc=repeated_means[iprop, t, :],
+                    covariance_matrix=cov
+                ).prob(samples[n, t, :]).numpy()
+            expected_weights.append(den/samples.shape[0])
+        # weights_chain = tf.stack(weights_chain)
+        # expected_weights.append(weights_chain.numpy())
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    # assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, proposal_settings))
+    assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, proposal_settings))
 
 def test_spatial_student():
     cov = tf.constant([[1, 0.5],
@@ -147,4 +168,6 @@ def test_spatial_student():
     proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
     # assert tf.reduce_all(tf.constant(expected_weights) == spatial(fake_means, samples, proposal_settings))
     assert tf.reduce_all(abs(tf.constant(expected_weights) - spatial(fake_means, samples, proposal_settings)) < 1e-10)
-# test_temporal_student()    
+
+
+test_spatial_other()    
