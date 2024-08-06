@@ -71,15 +71,15 @@ def test_general_cov_diag1():
     assert tf.reduce_all(new_state == sample)
     
 def test_general_cov_diag_list():
-    cov = tf.constant([1, 2], dtype=tf.float64)
+    cov = tf.constant([1., 2.])
     mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
     tf.random.set_seed(1)
     sample = mvn.sample()
     
-    cov = [1, 2]
+    cov = [1., 2.]
     new_state_fn = general_cov(cov)
     tf.random.set_seed(1)
-    new_state = new_state_fn(tf.zeros((1,2), dtype=tf.float64), 1)
+    new_state = new_state_fn(tf.zeros((1,2)), 1)
     assert tf.reduce_all(new_state == sample)
 
 # test_general_cov_diag_list()
