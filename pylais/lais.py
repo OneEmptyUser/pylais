@@ -81,12 +81,16 @@ class Lais:
             ISSamples: The importance sampling samples.
 
         """
+        
+        if initial_points.dtype not in [tf.float32, tf.float64]:
+            initial_points = tf.cast(initial_points, tf.float64)
+        dType = initial_points.dtype
         method = upper_settings.get("method", "mcmc")
         mcmc_settings = upper_settings.get("mcmc_settings", {})
         print("Running MCMC layer.")
         self.upper_layer(n_iter, N, initial_points, method, mcmc_settings)
         dim = initial_points.shape[1]
-        proposal_cov = lower_settings.get("cov", tf.eye(dim, dtype=tf.float64))
+        proposal_cov = lower_settings.get("cov", tf.eye(dim, dtype=dType))
         den = lower_settings.get("den", "all")
         n_per_sample = lower_settings.get("n_per_sample", 1)
         print("Running IS layer.")
@@ -132,6 +136,9 @@ class Lais:
         Exception
             If `targets` is not empty and its length is not equal to N.
         """
+        
+        if initial_points.dtype not in [tf.float32, tf.float64]:
+            initial_points = tf.cast(initial_points, tf.float64)
         
         # get dimensions of the problem
         _, dim = initial_points.shape
