@@ -3,7 +3,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from pylais.denominators import all_, temporal, spatial
 from pylais.samples import ISSamples, mcmcSamples
-
+import matplotlib.pyplot as plt
 
 class Lais:
     """Class that implements the LAIS algorithm.
