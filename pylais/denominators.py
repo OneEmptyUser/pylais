@@ -30,7 +30,7 @@ def spatial(means, samples, proposal_settings):
     dType = means.dtype
     _, n_samples, _ = samples.shape
     
-    cov = proposal_settings.get("cov", tf.eye(dim), dType)
+    cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
     scale = tf.linalg.cholesky(cov)
     if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
         proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
