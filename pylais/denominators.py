@@ -27,18 +27,19 @@ def spatial(means, samples, proposal_settings):
     """
     
     N, T, dim = means.shape
+    dType = means.dtype
     _, n_samples, _ = samples.shape
     
-    cov = proposal_settings.get("cov", tf.eye(dim))
+    cov = proposal_settings.get("cov", tf.eye(dim), dType)
     scale = tf.linalg.cholesky(cov)
     if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
-        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
+        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
                                                             scale_tril=scale)
     
     if proposal_settings.get("proposal_type", "gaussian") == "student":
         df = proposal_settings.get("df", dim + 1)
         proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
-                                                                        loc=tf.zeros(dim, dtype=tf.float64),
+                                                                        loc=tf.zeros(dim, dtype=dType),
                                                                         scale=tf.linalg.LinearOperatorLowerTriangular(scale))
         
     dens = []
@@ -78,17 +79,18 @@ def temporal(means, samples, proposal_settings):
     
     N, T, dim = means.shape
     _, n_samples, _ = samples.shape
+    dType = means.dtype
     
-    cov = proposal_settings.get("cov", tf.eye(dim))
+    cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
     scale = tf.linalg.cholesky(cov)
     if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
-        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
+        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
                                                             scale_tril=scale)
     
     if proposal_settings.get("proposal_type", "gaussian") == "student":
         df = proposal_settings.get("df", dim + 1)
         proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
-                                                                        loc=tf.zeros(dim, dtype=tf.float64),
+                                                                        loc=tf.zeros(dim, dtype=dType),
                                                                         scale=tf.linalg.LinearOperatorLowerTriangular(scale))
     
     dens = []
@@ -126,16 +128,17 @@ def all_(flatted_means, flatted_samples, proposal_settings):
     
     
     _, dim = flatted_means.shape
-    cov = proposal_settings.get("cov", tf.eye(dim))
+    dType = flatted_means.dtype
+    cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
     scale = tf.linalg.cholesky(cov)
     if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
-        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=tf.float64),
+        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
                                                             scale_tril=scale)
     
     if proposal_settings.get("proposal_type", "gaussian") == "student":
         df = proposal_settings.get("df", dim + 1)
         proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
-                                                                        loc=tf.zeros(dim, dtype=tf.float64),
+                                                                        loc=tf.zeros(dim, dtype=dType),
                                                                         scale=tf.linalg.LinearOperatorLowerTriangular(scale))
     
     aux_fn = tf.function(
