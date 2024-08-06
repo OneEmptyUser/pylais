@@ -90,17 +90,17 @@ def general_cov(cov):
     if not tf_is_tensor(cov):
         if isinstance(cov, (list, tuple)):
             # cov = tf.linalg.diag(cov)
-            cov = tf.cast(cov, dtype=tf.float64)
+            # cov = tf.cast(cov, dtype=tf.float64)
             mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
     else:
         # if it is just a tensor
         if cov.ndim == 1:
-            cov = tf.cast(cov, dtype=tf.float64)
+            # cov = tf.cast(cov, dtype=tf.float64)
             mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
         # if it is a matrix with one row or one column
         elif (cov.shape[0]==1 and cov.shape[1]>1) or (cov.shape[0]>1 and cov.shape[1]==1):
             # cov = tf.linalg.diag(tf.squeeze(cov))
-            cov = tf.cast(cov, dtype=tf.float64)
+            # cov = tf.cast(cov, dtype=tf.float64)
             mvn = tfp.distributions.MultivariateNormalDiag(scale_diag=cov)
         else:
             mvn = tfp.distributions.MultivariateNormalTriL(scale_tril=tf.linalg.cholesky(cov))
