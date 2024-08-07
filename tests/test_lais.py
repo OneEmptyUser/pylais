@@ -31,7 +31,7 @@ def test_upper():
     N, T, dim = 3, 10, 2
     initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
     mcmc_settings = {
-        "method": "mcmc",
+        "method": "rwmh",
         "cov" : tf.eye(dim, dtype=tf.float64),
         }
     myLais = Lais(target)
@@ -52,7 +52,7 @@ def test_upper_targets():
     N, T, dim = 3, 10, 2
     initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
     mcmc_settings = {
-        "method": "mcmc",
+        "method": "rwmh",
         "cov" : tf.eye(dim, dtype=tf.float64),
         }
     targets = create_targets()
