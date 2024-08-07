@@ -149,3 +149,45 @@ def test_upper_slice():
         errors.append(f"Error in upper_layer:\n{e}")
         pytest.fail(f"Error in upper_layer:\n{e}")
     assert not errors
+    
+def test_main():
+    N, T, dim = 3, 10, 2
+    initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
+
+    upper_settings = {"method": "rwmh", "mcmc_settings": {
+        "cov": tf.eye(dim)
+        }
+    }
+    
+    lower_settings = {"M":2, "cov": tf.constant([[1., 0.5],[0.5, 1.]]), "den":"all"}
+    errors = []
+    try:
+        myLais = Lais(target)
+        myLais.main(T, N, initial_points, upper_settings, lower_settings)
+    except Exception as e:
+        errors.append(f"Error in upper_layer:\n{e}")
+        pytest.fail(f"Error in upper_layer:\n{e}")
+    assert not errors
+    
+def test_main_targets():
+    N, T, dim = 3, 10, 2
+    initial_points = tf.constant([(-5, -5), (5, 5), (2, 2)], dtype=tf.float64)
+
+    targets = create_targets()
+    upper_settings = {"method": "rwmh", "mcmc_settings": {
+        "cov": tf.eye(dim)
+        },
+        "targets": targets
+    }
+    
+    lower_settings = {"M":2, "cov": tf.constant([[1., 0.5],[0.5, 1.]]), "den":"all"}
+    errors = []
+    try:
+        myLais = Lais(target)
+        myLais.main(T, N, initial_points, upper_settings, lower_settings)
+    except Exception as e:
+        errors.append(f"Error in upper_layer:\n{e}")
+        pytest.fail(f"Error in upper_layer:\n{e}")
+    assert not errors
+    
+test_main_targets()
