@@ -25,7 +25,7 @@ def returnKernel(kernel, logposterior, settings={}):
     Returns:
         _type_: _description_
     """
-    if kernel=="mcmc":
+    if kernel=="rwmh":
         cov = settings.get("cov", None)
         if cov is None:
             return tfp.mcmc.RandomWalkMetropolis(

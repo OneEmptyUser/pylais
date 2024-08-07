@@ -22,13 +22,13 @@ class Lais:
     Methods
     -------
         __str__(self)
-        main(self, n_iter, N, initial_points, upper_settings={}, lower_settings = {})
+        main(self, T, N, initial_points, upper_settings={}, lower_settings = {})
             Runs the complete algorithm, from the upper layer to the lower layer.
-        upper_layer(self, n_iter, N, initial_points, method="rw", mcmc_settings={})
+        upper_layer(self, T, N, initial_points, method="rw", mcmc_settings={})
             Runs the MCMC layer, and adapt the proposals needed in the lower layer with an MCMC algorithm.
         set_means(self, means)
             Allows to skip the MCMC layer. The user can the MCMC chains as if they were from the upper layer.
-        lower_layer(self, cov, n_per_sample, den="all")
+        lower_layer(self, cov, M, den="all")
             Runs the IS layer.
         resample(self, n)
             Resamples the samples based on the given number of samples. Calls the method in the ISSamples class.
@@ -56,12 +56,12 @@ class Lais:
         msg = "Lais class\n loglikelihood: {}\n logprior: {}\n".format(self.loglikelihood, self.logprior)
         return msg
     
-    def main(self, n_iter, N, initial_points, upper_settings={}, lower_settings = {}):
+    def main(self, T, N, initial_points, upper_settings={}, lower_settings = {}):
         """
         Runs the complete algorithm, from the upper layer to the lower layer.
 
         Args:
-            n_iter: int
+            T: int
                 The number of iterations for the upper layer.
             N: int
                 The number of MCMC chains to run in the upper layer.
@@ -69,13 +69,13 @@ class Lais:
                 The initial points for the MCMC chains.
             upper_settings: dict, (optional)
                 Additional settings for the upper layer. Defaults to an empty dictionary.
-                - method (str, optional): The method to use in the upper layer. Defaults to "mcmc".
+                - method (str, optional): The method to use in the upper layer. Defaults to "rwmh".
                 - mcmc_settings (dict, optional): Additional settings for the MCMC method. Defaults to an empty dictionary.
             lower_settings: dict, (optional)
                 Additional settings for the lower layer. Defaults to an empty dictionary.
                 - cov (tf.Tensor, optional): The covariance matrix for the proposal distribution. Defaults to the identity matrix.
                 - den (str, optional): The type of importance sampling to use. Defaults to "all".
-                - n_per_sample (int, optional): The number of samples to draw for each importance sampling step. Defaults to 1.
+                - M (int, optional): The number of samples to draw for each importance sampling step. Defaults to 1.
 
         Returns:
             ISSamples: The importance sampling samples.
@@ -85,20 +85,20 @@ class Lais:
         if initial_points.dtype not in [tf.float32, tf.float64]:
             initial_points = tf.cast(initial_points, tf.float64)
         dType = initial_points.dtype
-        method = upper_settings.get("method", "mcmc")
+        method = upper_settings.get("method", "rwmh")
         mcmc_settings = upper_settings.get("mcmc_settings", {})
         print("Running MCMC layer.")
-        self.upper_layer(n_iter, N, initial_points, method, mcmc_settings)
+        self.upper_layer(T, N, initial_points, method, mcmc_settings)
         dim = initial_points.shape[1]
         proposal_cov = lower_settings.get("cov", tf.eye(dim, dtype=dType))
         den = lower_settings.get("den", "all")
-        n_per_sample = lower_settings.get("n_per_sample", 1)
+        M = lower_settings.get("M", 1)
         print("Running IS layer.")
-        ImpSamples = self.lower_layer(proposal_cov, n_per_sample, den)
+        ImpSamples = self.lower_layer(proposal_cov, M, den)
         return ImpSamples
     
     
-    def upper_layer(self, n_iter, N, initial_points, method="mcmc", mcmc_settings={}, targets=[]):
+    def upper_layer(self, T, N, initial_points, method="rwmh", mcmc_settings={}, targets=[]):
         """
         Run the upper layer of the algorithm.
         
@@ -109,14 +109,14 @@ class Lais:
 
         Parameters
         ----------
-        n_iter : int
+        T : int
             The number of iterations for the upper layer.
         N : int
             The number of MCMC chains to run in the upper layer.
         initial_points : tensorflow.Tensor
             The initial points for the MCMC chains. It is a tf.Tensor of shape (N, dim).
         method : str, optional
-            The method to use in the upper layer. Defaults to "mcmc".
+            The method to use in the upper layer. Defaults to "rwmh".
         mcmc_settings : dict, optional
             Additional settings for the MCMC method. Defaults to an empty dictionary.
         targets : list, optional
@@ -171,7 +171,7 @@ class Lais:
         means = []
         for n in range(N):
             init = initial_points[n]
-            aux_means, _ = run_mcmc(kernels[n], n_iter, num_burnin_steps=0,
+            aux_means, _ = run_mcmc(kernels[n], T, num_burnin_steps=0,
                                  current_state=init)
             means.append(aux_means)
         
@@ -196,7 +196,7 @@ class Lais:
         self.MCMCsamples = mcmcSamples(means)
         print("Means set.")
     
-    def lower_layer(self, cov, n_per_sample, den="all", proposal_type="gaussian", df=None):
+    def lower_layer(self, cov, M=1, den="all", proposal_type="gaussian", df=None):
         """
         Run the lower layer of the LAIS algorithm.
         
@@ -207,7 +207,7 @@ class Lais:
         ----------
         cov : tensorflow.Tensor
             The covariance matrix for the distribution.
-        n_per_sample : int
+        M : int
             The number of samples per iteration.
         den : str, optional
             The type of denominator to use. Defaults to "all".
@@ -237,8 +237,8 @@ class Lais:
             return self.logposterior(theta)
         means = self.MCMCsamples.samples
         dType = means.dtype
-        N, n_iter, dim = means.shape
-        repeated_means = repeatTensor3D(means, n_per_sample)
+        N, T, dim = means.shape
+        repeated_means = repeatTensor3D(means, M)
         flatted_repeated_means = flatTensor3D(repeated_means)
         flatted_means = flatTensor3D(means)
         # mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=tf.zeros(dim, dtype=tf.float64),
@@ -257,8 +257,8 @@ class Lais:
                                                         scale_tril=tf.linalg.cholesky(cov))
         
         
-        flatted_samples = proposal.sample(n_per_sample*n_iter*N) + flatted_repeated_means
-        samples = tf.reshape(flatted_samples, (N, n_iter*n_per_sample, dim))
+        flatted_samples = proposal.sample(M*T*N) + flatted_repeated_means
+        samples = tf.reshape(flatted_samples, (N, T*M, dim))
         
         # calculate the denominators
         print("Calculating weights: numerator")
