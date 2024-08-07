@@ -1,8 +1,8 @@
-from utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, returnKernel
+from pylais.utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, returnKernel
 import tensorflow as tf
 import tensorflow_probability as tfp
-from denominators import all_, temporal, spatial
-from samples import ISSamples, mcmcSamples
+from pylais.denominators import all_, temporal, spatial
+from pylais.samples import ISSamples, mcmcSamples
 import matplotlib.pyplot as plt
 
 class Lais:
