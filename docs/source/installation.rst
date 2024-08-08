@@ -9,9 +9,9 @@ You only need to install it from the source repository
    pip install git+https://github.com/OneEmptyUser/pylais
 
 ``pylais`` makes use of several third parties packages that must be installed for
-the correct performance:
+the correct performance. All test have been performed with specified versions:
 
-#. tensorflow 2.x
-#. tensorflow_probability
+#. tensorflow==2.16.1
+#. tensorflow_probability==0.24.0
 #. tf_keras
-#. matplotlib
+#. matplotlib==3.8.2
