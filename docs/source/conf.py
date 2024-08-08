@@ -38,3 +38,12 @@ exclude_patterns = []
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'private-members': False,  # Set to True if you want to include private methods
+    'special-members': '__init__',  # Add more special members if needed
+    'inherited-members': True,
+    'show-inheritance': True,
+}
