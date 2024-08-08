@@ -333,7 +333,7 @@ class Lais:
             return "No IS samples"
         
         
-    def histogram(self, n_samples, dimensions=(0,1), axis=None, **hist_args):
+    def histogram(self, n_samples, dimensions=(0,1), bins=25, axis=None, **hist_args):
         """
         Generate a histogram plot of the IS samples.
         
@@ -369,7 +369,7 @@ class Lais:
         samples = self.resample(n_samples)
         if len(dimensions) == 2:
             hist = ax.hist2d(samples.samples[:, dimensions[0]], samples.samples[:, dimensions[1]],
-                      bins=int(tf.math.sqrt(tf.cast(n_samples, dtype=tf.float32)).numpy()),
+                      bins=int(bins),
                       cmap='Blues',
                       density=True,
                       **hist_args)
@@ -378,7 +378,7 @@ class Lais:
             ax.set_ylabel(r"$\theta_{}$".format(dimensions[1]))
         elif len(dimensions) == 1:
             ax.hist(samples.samples[:, dimensions[0]],
-                    bins=int(tf.math.sqrt(tf.cast(n_samples, dtype=tf.float32)).numpy()),
+                    bins=int(bins),
                     density=True,
                     **hist_args
                     )
