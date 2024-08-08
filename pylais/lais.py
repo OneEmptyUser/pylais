@@ -27,7 +27,7 @@ class Lais:
         upper_layer(self, T, N, initial_points, method="rw", mcmc_settings={})
             Runs the MCMC layer, and adapt the proposals needed in the lower layer with an MCMC algorithm.
         set_means(self, means)
-            Allows to skip the MCMC layer. The user can the MCMC chains as if they were from the upper layer.
+            Allows to skip the MCMC layer. The user can set the MCMC chains as if they were from the upper layer.
         lower_layer(self, cov, M, den="all")
             Runs the IS layer.
         resample(self, n)
@@ -104,42 +104,69 @@ class Lais:
     
     def upper_layer(self, T, N, initial_points, method="rwmh", mcmc_settings={}, targets=[]):
         """
-        Run the upper layer of the algorithm.
-        
-        This function runs the MCMC layer, and adapt the proposals needed in the lower layer with an MCMC algorithm,
-        which consists of adapting the MCMC chains to the target distribution. If `targets` is not empty, the MCMC chains
-        take as invariant density the function in `targets` that take that index, i.e, chain `n` has as invariant density
-        the function `targets[n]`. If it is empty, all chains will have as invariant density the posterior.
+    Executes the upper layer of the LAIS algorithm.
 
-        Parameters
-        ----------
-        T : int
-            The number of iterations for the upper layer.
-        N : int
-            The number of MCMC chains to run in the upper layer.
-        initial_points : tensorflow.Tensor
-            The initial points for the MCMC chains. It is a tf.Tensor of shape (N, dim).
-        method : str, optional
-            The method to use in the upper layer. Defaults to "rwmh".
-        mcmc_settings : dict, optional
-            Additional settings for the MCMC method. Defaults to an empty dictionary.
-        targets : list, optional
-            The functions to use as invariant distributions of the MCMC chains. Defaults to an empty list.
+    This method runs the MCMC (Markov Chain Monte Carlo) layer of the algorithm, which adapts the proposals needed 
+    in the lower layer using an MCMC algorithm. The adaptation is performed by adjusting the MCMC chains to the 
+    target distribution. If the `targets` parameter is not empty, each MCMC chain will use the corresponding 
+    function in `targets` as its invariant distribution. If `targets` is empty, all chains will use the posterior 
+    distribution as their invariant distribution.
 
-        Returns
-        -------
-        mcmcSamples
-            The MCMC samples obtained from the upper layer.
+    Parameters
+    ----------
+    T : int
+        The number of iterations for the upper layer MCMC algorithm.
+    N : int
+        The number of MCMC chains to run in the upper layer.
+    initial_points : array_like, shape (N, dim)
+        The initial points for the MCMC chains, where `N` is the number of chains, and `dim` is the dimensionality 
+        of the parameter space.
+    method : str, optional, default="rwmh"
+        The MCMC method to use in the upper layer. Defaults to "rwmh" (Random Walk Metropolis-Hastings).
+    mcmc_settings : dict, optional, default=None
+        A dictionary of additional settings for the MCMC method. If not provided, an empty dictionary is used.
+    targets : list of callables, optional, default=None
+        A list of functions representing the invariant distributions of the MCMC chains. If provided, the length 
+        of `targets` must be equal to `N`. If `targets` is None, all chains will use the posterior distribution.
 
-        Raises
-        ------
-        Exception
-            If the number of initial points is not equal to N.
-        Exception
-            If `targets` is not a list of functions.
-        Exception
-            If `targets` is not empty and its length is not equal to N.
-        """
+    Returns
+    -------
+    mcmcSamples
+        An instance of the `mcmcSamples` class containing the MCMC samples obtained from the upper layer.
+
+    Raises
+    ------
+    ValueError
+        If the number of initial points does not equal `N`.
+    TypeError
+        If `targets` is not a list of functions.
+    ValueError
+        If `targets` is not empty and its length does not equal `N`.
+
+    Notes
+    -----
+    The method can utilize various MCMC algorithms, specified via the `method` parameter. The default method is 
+    Random Walk Metropolis-Hastings (`rwmh`). The `mcmc_settings` dictionary can be used to fine-tune the MCMC 
+    algorithm, such as setting the covariance matrix for proposals. The methods available are:
+
+    - `rwmh`: Random Walk Metropolis-Hastings.
+    - `hmc`: Hamiltonian Monte Carlo.
+    - `nuts`: No-U-Turn Sampler.
+    - `mala`: Metropolis Adjusted Langevin Algorithm.
+    - `slice`: Slice Sampling.	
+
+    See the documentation for each method for more details.
+    
+    Examples
+    --------
+    .. code-block:: python
+
+        # Example usage of upper_layer
+        lais_instance = Lais(loglikelihood, logprior)
+        T, N, dim = 1000, 3, 1
+        initial_points = tf.random.normal(shape=(N, dim))
+        mcmc_samples = lais_instance.upper_layer(T=T, N=N, initial_points=initial_points)
+    """
         
         if initial_points.dtype not in [tf.float32, tf.float64]:
             initial_points = tf.cast(initial_points, tf.float64)
@@ -187,11 +214,13 @@ class Lais:
         """
         Set the MCMC samples to the given means.
 
-        Parameters:
-            means: tensorflow.Tensor
-                The means to set the MCMC samples to.
+        Parameters
+        ----------
+        means : tensorflow.Tensor
+            The means to set the MCMC samples to.
 
-        Returns:
+        Returns
+        -------
             None
 
         Prints:
