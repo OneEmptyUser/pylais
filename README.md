@@ -1,5 +1,15 @@
 # Layered adaptive importance sampling for python
 
+This python package presents the implementation of Layered Adaptive Importance Sampling algorithm presented in *Martino, L., Elvira, V., Luengo, D., & Corander, J. (2017). Layered adaptive importance sampling. Statistics and Computing, 27, 599-623*
+and extended in *Llorente, F., Curbelo, E., Martino, L., Elvira, V., & Delgado, D. (2022). MCMC‐driven importance samplers. Applied Mathematical Modelling, 111, 310-331*.
+
+You can **install** the package with: 
+
+`pip install git+https://github.com/OneEmptyUser/pylais`
+
+Follow [this link](https://strong-crumble-ed7daa.netlify.app/) for the complete **documentation**.
+
+-----
 
 Layered Adaptive Importance Sampling is an IS method that consists of two layers of sampling. In the upper layer, the location parameters of the proposal densities to be used in the lower layer are adapted. The adaptation is carried out by running $N$ MCMC chains of length $T$. After $T$ iterations, we have a population of $NT$ location parameters $\{\mathbf{\mu}_{n,t}\}$. In the lower layer, Importance Sampling is performed, where samples $\textbf{x}_{n,t}\sim q(\textbf{x} | {\mu}_{n,t})$ are drawn, and each one is associated with a weight.
 
