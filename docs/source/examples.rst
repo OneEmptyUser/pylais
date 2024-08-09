@@ -200,7 +200,7 @@ a Student-t proposal with five degrees of freedom in the lower layer.
 Partial posteriors
 ------------------
 
-The term partial posteriors refers to posterior distributions built with a subset of the data. In this case the
+The term partial posterior refers to posterior distribution built using only a subset of the data. In this case the
 chains in the upper layer will be targeting different partial posteriors, whilst the inference is done with respect
 to the true posterior, this is, the weights in the lower layer are calculate using the total posterior. We use the
 class ``ExampleReg`` created in the previous example. First, let us define a function that return a list with the partial
