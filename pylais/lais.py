@@ -11,13 +11,13 @@ class Lais:
     Attributes
     ----------
         loglikelihood : function
-            A function that calculates the log likelihood of the model.
+            A function provided by the user that calculates the log likelihood of the model.
         logprior : function
-            A function that calculates the log prior of the model.
+            A function provided by the user that calculates the log prior of the model.
         logposterior : function
-            A function that calculates the log posterior of the model.
+            A function that calculates the log posterior of the model. This is computed automatically.
         Z : float
-            The marginal likelihood of the model.
+            Property that returns the marginal likelihood of the model.
             
     Methods
     -------
@@ -118,7 +118,7 @@ class Lais:
         The number of iterations for the upper layer MCMC algorithm.
     N : int
         The number of MCMC chains to run in the upper layer.
-    initial_points : array_like, shape (N, dim)
+    initial_points : tensorflow.Tensor, shape (N, dim)
         The initial points for the MCMC chains, where `N` is the number of chains, and `dim` is the dimensionality 
         of the parameter space.
     method : str, optional, default="rwmh"
@@ -162,10 +162,10 @@ class Lais:
     .. code-block:: python
 
         # Example usage of upper_layer
-        lais_instance = Lais(loglikelihood, logprior)
+        my_lais = Lais(loglikelihood, logprior)
         T, N, dim = 1000, 3, 1
         initial_points = tf.random.normal(shape=(N, dim))
-        mcmc_samples = lais_instance.upper_layer(T=T, N=N, initial_points=initial_points)
+        mcmc_samples = my_lais.upper_layer(T=T, N=N, initial_points=initial_points)
     """
         
         if initial_points.dtype not in [tf.float32, tf.float64]:
@@ -225,6 +225,20 @@ class Lais:
 
         Prints:
             str: A message indicating that the means have been set.
+            
+        Examples
+        --------
+        .. code-block:: python
+
+            # Example usage of set_means
+            lais_instance = Lais(loglikelihood, logprior)
+            new_means = tf.constant([[[0.1, 0.2], 
+                                     [0.3, 0.4],
+                                     [0.5, 0.6]],
+                                     [[1, 2], 
+                                     [3, 4],
+                                     [5, 6]]])
+            lais_instance.set_means(new_means)
         """
         self.MCMCsamples = mcmcSamples(means)
         print("Means set.")
@@ -234,20 +248,21 @@ class Lais:
         Run the lower layer of the LAIS algorithm.
         
         This function samples from the proposals adapted in the upper layer and assigns the importance weights
-        to each sample.
+        to each sample. It can't be run before the upper layer has been run.
 
         Parameters
         ----------
         cov : tensorflow.Tensor
             The covariance matrix for the distribution.
         M : int, optional
-            The number of samples per iteration. Defaults to 1.
+            The number of samples to be drawn per proposal. Defaults to 1.
         den : str, optional
-            The type of denominator to use. Defaults to "all".
+            The type of denominator to use. Defaults to "all". Options are "all", "spatial" and "temporal".
         proposal_type : str, optional
-            The type of proposal distribution. Defaults to "gaussian".
+            The type of proposal distribution. Defaults to "gaussian". Options are "gaussian" and "student".
         df : int, optional
-            The degrees of freedom for the Student's t proposal distribution. Defaults to None.
+            The degrees of freedom for the Student's t proposal distribution. Defaults to None. Only used if
+            proposal_type is "student".
 
         Returns
         -------
@@ -263,6 +278,24 @@ class Lais:
         ------
         str
             A message indicating the start and end of the calculation of the denominators.
+            
+        Examples
+        --------
+        .. code-block:: python
+
+            # Example usage of lower_layer
+            my_lais = Lais(loglikelihood, logprior)
+            cov = tf.constant([[1, 0.5], [0.5, 1]])
+            my_lais.upper_layer(T=100, N=5, initial_points=tf.zeros((5, 2)))
+            my_lais.lower_layer(cov, M=10)
+            
+        .. code-block:: python
+
+            # Example usage of lower_layer with Student-t proposal
+            my_lais = Lais(loglikelihood, logprior)
+            cov = tf.constant([[1, 0], [0, 1]], dtype=tf.float64)
+            my_lais.upper_layer(T=100, N=5, initial_points=tf.zeros((5, 2)))
+            my_lais.lower_layer(cov, M=10, proposal_type="student", df=10)
         """
         # check if upper layer has been run
         if "MCMCsamples" not in self.__dict__:

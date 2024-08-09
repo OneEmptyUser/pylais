@@ -9,16 +9,25 @@ def spatial(means, samples, proposal_settings):
 
     Calculate the spatial denominator as the average of the density evaluation
     on each sample of all the proposals that were adapted at the same time
-    that the proposal that originated the sample.
+    that the proposal that originated the sample:
+
+    .. math::
+
+        \Phi(x_{n,t}) = \dfrac{1}{N}\sum_{i=1}^N q(x_{n,t} | \mu_{i, t})
 
     Parameters
     ----------
-    means : tensorflow.Tensor
-        Tensor of shape (N, T, dim) representing the means.
-    samples : tensorflow.Tensor
-        Tensor of shape (_, n_samples, _) representing the samples.
+    means : tensorflow.Tensor, shape (N, T, dim)
+        Tensor of means.
+    samples : tensorflow.Tensor, shape (N, N*T*M, dim)
+        Tensor of samples.
     proposal_settings : dict
-        Dictionary containing the proposal settings, including the covariance matrix and the proposal type.
+        Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
+        keys for this dictionary are:
+        
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
 
     Returns
     -------
@@ -61,15 +70,24 @@ def temporal(means, samples, proposal_settings):
     Calculate the temporal denominator as the average of the density evaluation
     on each sample of all the proposals that were adapted at the same time
     that the proposal that originated the sample.
+    
+    .. math::
+    
+        \Phi(x_{n,t}) = \dfrac{1}{T}\sum_{k=1}^T q(x_{n,t} | \mu_{n, k})
 
     Parameters
     ----------
-    means : tensorflow.Tensor
-        Tensor of shape (N, T, dim) representing the means.
-    samples : tensorflow.Tensor
-        Tensor of shape (_, n_samples, _) representing the samples.
+    means : tensorflow.Tensor, shape (N, T, dim)
+        Tensor of means.
+    samples : tensorflow.Tensor, shape (N, N*T*M, dim)
+        Tensor of samples.
     proposal_settings : dict
-        Dictionary containing the proposal settings, including the covariance matrix and the proposal type.
+        Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
+        keys for this dictionary are:
+        
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
 
     Returns
     -------
@@ -111,14 +129,23 @@ def all_(flatted_means, flatted_samples, proposal_settings):
     Calculate the total denominator as the average of the density evaluation
     of all the proposals on each sample.
 
+    .. math::
+    
+        \Phi(x_{n,t}) = \dfrac{1}{N} \dfrac{1}{T}\sum_{i=1}^N \sum_{k=1}^T q(x_{i,t} | \mu_{i, k})
+        
     Parameters
     ----------
-    flatted_means : tensorflow.Tensor
-        The tensor of means with shape (N*T, dim).
-    flatted_samples : tensorflow.Tensor
-        The tensor of samples with shape (n_samples, _).
+    flatted_means : tensorflow.Tensor, shape (N*T, dim)
+        The tensor of means flattened from (N, T, dim) to (N*T, dim).
+    flatted_samples : tensorflow.Tensor, shape (N*T*M, dim)
+        The tensor of samples flattened from (N, T*M, dim) to (N*T*M, dim).
     proposal_settings : dict
-        Dictionary containing the proposal settings, including the covariance matrix and the proposal type.
+        Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
+        keys for this dictionary are:
+        
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
 
     Returns
     -------

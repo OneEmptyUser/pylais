@@ -34,10 +34,13 @@ class mcmcSamples:
         """
         Initializes a new instance of the class with the given samples.
 
-        Parameters:
-            samples (list): A list of samples.
+        Parameters
+        ----------
+        samples : tensorflow.Tensor
+            A list of samples.
 
-        Returns:
+        Returns
+        -------
             None
         """
         self.samples = samples
@@ -59,11 +62,20 @@ class mcmcSamples:
 
         where w is the mean of the standard deviations, b is the standard deviation of the means, and n_iter is the number of iterations in each chain.
 
-        Parameters:
+        Parameters
+        ----------
             None
 
-        Returns:
+        Returns
+        -------
             tf.Tensor: A tensor containing the Gelman-Rubin statistic. If there is only one chain, it prints a message saying to run more than one chain.
+            
+        Example
+        -------
+        .. code-block:: python
+        
+            means = my_lais.upper_layer(T, N, initial_points)
+            means.gelman_rubin()
         """
         n_chains, n_iter, _ = self.samples.shape
         samples = self.samples
@@ -103,6 +115,13 @@ class mcmcSamples:
         Returns
         -------
             None
+            
+        Example
+        -------
+        .. code-block:: python
+        
+            means = my_lais.upper_layer(T, N, initial_points)
+            means.trace(chains=[0, 1])
         """
         if axis:
             ax = axis
@@ -154,6 +173,13 @@ class mcmcSamples:
         Returns
         -------
             None
+            
+        Example
+        -------
+        .. code-block:: python
+        
+            means = my_lais.upper_layer(T, N, initial_points)
+            means.autoCorrPlot(chain=2, component=0, max_lag=15)
         """        
         
         if axis:
@@ -181,7 +207,7 @@ class mcmcSamples:
         """
         Plot the cumulative means of the selected MCMC chains.
 
-        This function plots the cumulative means of MCMC chains for the specified dimensions.
+        This function plots the cumulative means of specified MCMC chains.
         It takes an optional parameter `chains` which specifies the chains to plot. If not provided,
         all chains will be plotted. The `chains` parameter can be an integer, a list, or a tuple, with
         the indices of the chains to plot. The function creates a new axis if `axis` is not provided.
@@ -205,6 +231,13 @@ class mcmcSamples:
         Returns
         -------
         None
+        
+        Example
+        -------
+        .. code-block:: python
+        
+            means = my_lais.upper_layer(T, N, initial_points)
+            means.cumulativeMean(chains=2)
         """
 
         if axis:
@@ -243,8 +276,9 @@ class mcmcSamples:
         Plot a scatter plot of the MCMC samples.
         
         The user can choose which chains to plot. By default all chains will be plotted.
-        The first two dimensions are plotted by default, but the user can choose different dimensions
-        changing the `dims` parameter. If an axis is not provided, a new one will be created.
+        In case of a parameter space with more than two dimensions, the first two dimensions
+        are plotted by default, but the user can choose different dimensions changing the `dims`
+        parameter. If an axis is not provided, a new one will be created.
 
         Parameters
         ----------
@@ -259,7 +293,9 @@ class mcmcSamples:
         axis : matplotlib.axes._subplots.AxesSubplot, optional
             The axis on which to plot the scatter plot. If not provided, a new axis will be created.
         dims : tuple, optional
-            The dimensions of the samples to plot. Defaults to (0, 1).
+            A tuple denoting the component of the parameter space to plot. Defaults to (0, 1).
+            The firs element of the tuple corresponds to the x-axis and the second element to the y-axis.
+            
 
         Raises
         ------
@@ -271,6 +307,13 @@ class mcmcSamples:
         Returns
         -------
         None
+        
+        Example
+        -------
+        .. code-block:: python
+        
+            means = my_lais.upper_layer(T, N, initial_points)
+            means.scatter(xlim=(0, 1), ylim=(0, 1), chains=2)
         """
         
         
@@ -476,6 +519,20 @@ class ISSamples:
         -------
         ISSamples
             A new instance of the ISSamples class containing the resampled samples.
+            
+        Examples
+        --------
+        .. code-block:: python
+
+            from pylais import Lais
+            
+            # Assuming you have defined the loglikelihood function
+            my_lais = Lais(loglikelihood)
+            T, N = 1000, 100
+            initial_points = tf.random.uniform((N, 3))
+            means = my_lais.upper_layer(T, N, initial_points)
+            final_samples = my_lais.lower_layer(T, N, means)
+            final_samples.resample(N*T)
         """
         
         if seed is not None:
@@ -504,7 +561,9 @@ class ISSamples:
         axis : matplotlib.axes._subplots.AxesSubplot, optional
             The axis on which to plot the scatter plot. If not provided, a new axis will be created.
         dims : tuple, optional
-            The dimensions of the samples to plot. Defaults to (0, 1).
+            A tuple denoting the component of the parameter space to plot. Defaults to (0, 1).
+            The firs element of the tuple corresponds to the x-axis and the second element to the y-axis.
+            
 
         Raises
         ------
@@ -514,6 +573,20 @@ class ISSamples:
         Returns
         -------
         None
+        
+        Examples
+        --------
+        .. code-block:: python
+
+            from pylais import Lais
+            
+            # Assuming you have defined the loglikelihood function
+            my_lais = Lais(loglikelihood)
+            T, N = 1000, 100
+            initial_points = tf.random.uniform((N, 3))
+            means = my_lais.upper_layer(T, N, initial_points)
+            final_samples = my_lais.lower_layer(T, N, means)
+            final_samples.scatter(xlim=(0, 1), ylim=(0, 1), dims=(0, 2))
         """
         
         
@@ -576,6 +649,21 @@ class ISSamples:
         -------
         tf.Tensor
             The n-th moment of the samples.
+        
+        Examples
+        --------
+        .. code-block:: python
+
+            from pylais import Lais
+            
+            # Assuming you have defined the loglikelihood function
+            
+            my_lais = Lais(loglikelihood)
+            T, N = 1000, 100
+            initial_points = tf.random.uniform((N, 3))
+            means = my_lais.upper_layer(T, N, initial_points)
+            final_samples = my_lais.lower_layer(T, N, means)
+            final_samples.moment_n(2)
         """
         samples = self.samples
         # flatted_normalized_weights = self.normalized_weights
@@ -596,6 +684,24 @@ class ISSamples:
         -------
         tf.Tensor
             The expected value of the function applied to the samples.
+        
+        Examples
+        --------
+        .. code-block:: python
+
+            from pylais import Lais
+            
+            # Assuming you have defined the loglikelihood function
+            my_lais = Lais(loglikelihood)
+            
+            def f(theta):
+                return theta[0]**2
+            
+            T, N = 1000, 100
+            initial_points = tf.random.uniform((N, 3))
+            means = my_lais.upper_layer(T, N, initial_points)
+            final_samples = my_lais.lower_layer(T, N, means)
+            final_samples.expected_f(f)
         """
         samples = self.samples
         norm = self.normalized_weights[tf.newaxis, :]
