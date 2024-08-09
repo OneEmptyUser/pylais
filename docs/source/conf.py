@@ -7,9 +7,9 @@
 import pathlib
 import sys
 import os
-# sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
+sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
 # Añadir el directorio raíz del proyecto a sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../pylais')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../pylais')))
 
 
 # -- Project information -----------------------------------------------------
@@ -39,11 +39,11 @@ exclude_patterns = []
 html_theme = 'alabaster'
 html_static_path = ['_static']
 
-autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'private-members': False,  # Set to True if you want to include private methods
-    'special-members': '__init__',  # Add more special members if needed
-    'inherited-members': True,
-    'show-inheritance': True,
-}
+# autodoc_default_options = {
+#     'members': True,
+#     'undoc-members': True,
+#     'private-members': False,  # Set to True if you want to include private methods
+#     'special-members': '__init__',  # Add more special members if needed
+#     'inherited-members': True,
+#     'show-inheritance': True,
+# }
