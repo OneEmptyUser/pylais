@@ -45,7 +45,7 @@ After this we can use `pylais` to integrate.
 
     # Define the parameters of the upper layer
     n_iter = 5000
-    N = 3
+    N = 4
     gen = tf.random.Generator.from_seed(1)
     initial_points = 2*gen.uniform((N, 2), dtype=tf.float64)
     mcmc_settings = {
@@ -64,19 +64,27 @@ The chains can be explored for assessing the convergence with
 .. code:: python
 
     mu_chains.trace() # plot the trace
-    mu_chains.cumulativeMean() # plot the cumulative mean
 
-After having convergence in the MCMC chain we can pass to the sampling procedure
+.. figure:: _static\\trace_ex_1.png
+
+.. code:: python
+
+    mu_chains.trace() # plot the trace
+
+.. figure:: _static\\cummulativeMean_ex_1.png
+
+After having explore the MCMC chain we can pass to the sampling procedure. Remember that for LAIS algorithm
+is not strictly required that the chains converge, but it can beneficial.
 
 .. code:: python
 
     lower_settings = {
-    "cov": tf.eye(dim, dtype=tf.float64),
+    "cov": tf.eye(dim),
     "den": "all",
-    "n_per_sample": 3
+    "M": 1
     }
     samples = myLais.lower_layer(cov=lower_settings["cov"],
-                                 n_per_sample=lower_settings["n_per_sample"],
+                                 M=lower_settings["M"],
                                  den=lower_settings["den"])
 
 After the lower layer is done we can see the value of the integral through the value the marginal likelihood, i.e., `Z`:
@@ -84,14 +92,36 @@ After the lower layer is done we can see the value of the integral through the v
 .. code:: python
 
     print(samples.Z)
+    >>> <tf.Tensor: shape=(), dtype=float64, numpy=0.9821657584812903>
 
+We can explore the sampling procedure with a histogram of resampled samples. This can be done with the method ``histogram``. To see the
+histogram only of the marginal of :math:`\theta_1`:
+
+.. code-block:: python
+
+    myLais.histogram(5000, dimension=(1,))
+
+.. figure:: _static\\histogram_una_dim_ex_1.png
+
+or the histogram in the complete space:
+.. code-block:: python
+
+    myLais.histogram(5000, dimension=(0, 1))
+
+.. figure:: _static\\histogram_ex_1.png
 
 
 Simple non-linear regression
 ----------------------------
 
-In this case we work with generated data, for simplicity we define a class `ExampleReg` that generates the data at instaciation time
-and also contains the loglikelihood and logprior, this code is save in the file `non_linear.py`:
+In this case, our objective will be the estimation of the parameters of a model given by the Equation \eqref{equ:regression-example}.
+
+.. math::
+
+	y_i = \exp(-\alpha t_i) \sin(\beta t_i) + v_i, \qquad v_i \sim \mathcal{N}(0, 0.1^2).
+
+We work with data generated from this model, for simplicity we define a class `ExampleReg` that generates the data at instantiation time
+and also contains the ``loglikelihood`` and ``logprior``, this code is save in the file `non_linear.py`:
 
 .. code:: python
 
@@ -121,9 +151,11 @@ and also contains the loglikelihood and logprior, this code is save in the file 
 
     def loglikelihood(self, theta):
         y_est = self.f(theta)
-        return -tf.math.reduce_sum(tf.math.square(self.y - y_est))
+        return (-(1)/(2*0.1**2))*tf.math.reduce_sum(tf.math.square(self.y - y_est))
 
-Now we can use `pylais` to calculate the mean of the posterior distribution:
+Now we can use `pylais` to calculate the mean of the posterior distribution. We use Hamiltonian Monte Carlo in the upper layer and
+a Student-t proposal with five degrees of freedom in the lower layer.
+
 
 .. code-block:: python
 
@@ -135,34 +167,76 @@ Now we can use `pylais` to calculate the mean of the posterior distribution:
     loglikelihood = example.loglikelihood
     logprior = example.logprior
 
-    n_iter = 5000
-    N = 3
+    # Define the settings
+    N = 4
+    T = 5000
     gen = tf.random.Generator.from_seed(1)
-    initials_points = 2*gen.uniform((N, dim), dtype=tf.float64)
-    method = "hmc"
+    initial_points = 2*gen.uniform((N, 2), dtype=tf.float64)
 
-    # Run the upper layer (MCMC layer)
-    mcmc_settings = {
-        "step_size": 0.01,
-        "num_leapfrog_steps": 15,
-        "max_doublings":10,
-    }
+    upper_settings = {"method": "hmc", 
+        "settings": {"step_size": 0.01, "num_leapfrog_steps": 10}}
 
-    mu_chains = myLais.upper_layer(n_iter=n_iter,
-                                N=N,
-                                initial_points=initials_points,
-                                method=method,
-                                mcmc_settings=mcmc_settings)
+    lower_settings = {"cov": tf.eye(2)*0.01, "den": "all", "M": 1,
+        "proposal_type": "student", "df": 5}
+
+    # Instanciate the class
+    my_lais = Lais(loglikelihood=loglikelihood, logprior=logprior)
+
+    # Run the MCMC layer
+    mu_chains = my_lais.upper_layer(T=T, N=N, initial_points=initials, 
+        method=upper_settings["method"], settings=upper_settings["settings"])
+
+    # Run the IS layer
+    final_samples = my_lais.lower_layer(cov=lower_settings["cov"], M=lower_settings["M"],
+        den=lower_settings["den"], proposal_type=lower_settings["proposal_type"], df=lower_settings["df"])
+
+    # Calculate the expected value
+    print(final_samples.moment_n())
+    >>> <tf.Tensor: shape=(1, 2), dtype=float64, numpy=array([[0.10242369 1.99232299]])>
 
 
-    # Run the lower layer (IS layer)
-    lower_settings = {
-        "cov": 1e-2*tf.eye(dim, dtype=tf.float64),
-        "den": "all",
-        "n_per_sample": 3
-    }
+Partial posteriors
+------------------
 
-    final_samples = myLais.lower_layer(cov=lower_settings["cov"],
-                                   n_per_sample=lower_settings["n_per_sample"],
-                                   den=lower_settings["den"])
-    expected = 	final_samples.moment_n().numpy()
+The term partial posteriors refers to posterior distributions built with a subset of the data. In this case the
+chains in the upper layer will be targeting different partial posteriors, whilst the inference is done with respect
+to the true posterior, this is, the weights in the lower layer are calculate using the total posterior. We use the
+class ``ExampleReg`` created in the previous example. First, let us define a function that return a list with the partial
+posteriors.
+
+.. code-block:: python
+
+    def new_targets(example):
+	from copy import copy
+	n_data = 5
+	targets = []
+	for n in range(N):
+		idx =tf.random.categorical(tf.math.log([tf.ones(len(example.x))]), n_data)
+		new_ex = copy(example)
+		new_ex.x = tf.gather(new_ex.x, tf.squeeze(idx))
+		new_ex.y = tf.gather(new_ex.y, tf.squeeze(idx))
+		
+		log_tar = lambda theta:new_ex.loglikelihood(theta) + new_ex.logprior(theta)
+		targets.append(log_tar)
+	return targets
+
+Now lets estimate the expected value of the posterior distribution with LAIS using a different invariant density for each
+chain.
+
+.. code-block:: python
+
+    targets_list = new_targets(example)
+
+    myLais = Lais(loglikelihood, logprior)
+    # Declare the initial points
+    gen = tf.random.Generator.from_seed(1)
+    initial_points = 2*gen.uniform((N, 2), dtype=tf.float64)
+
+    upper_settings = {"method": "rwmh",
+        settings={"cov": 0.1*tf.eye(2)}, "targets": targets_list}
+    lower_settings = {"cov": 0.1*tf.eye(2), "M": 1, "den": "all",
+        "proposal_type": "gaussian"}
+
+    final_samples = myLais.main(T, N, initial_points, upper_settings, lower_settings)
+    print(final_samples.momnet_n())
+    >>> tf.Tensor([[0.1070357 2.01090445]], shape=(1, 2), dtype=float64)

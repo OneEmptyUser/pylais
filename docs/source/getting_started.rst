@@ -3,15 +3,12 @@ Getting started
 
 The main class of ``pylais`` package is called ``Lais``.
 
-.. autoclass:: pylais.lais.Lais
 
 This class allows to define the problem and sample from target density.
 Firs of all, for creating an instance of the class we need to provide the ``loglikelihood`` of the model, this is
 the logarithm of the **likelihood** function and
 the logarithm of the **prior**, ``logprior``, being this last argument optional. If no ``logprior`` is passed, then we work with the
 improper prior distribution.
-
-.. .. autofunction:: pylais.Lais.__init__
 
 The ``loglikelihood`` function and ``logprior`` should be defined using tensorflow functions. Example of this can be
 
@@ -42,3 +39,8 @@ After defining the ``loglikelihood`` and ``logprior`` function we create an inst
 .. code-block:: python
 
     my_lais = Lais(loglikelihood, logprior)
+
+
+Following we have a list of all the methods in ``Lais``:
+
+.. autoclass:: pylais.lais.Lais

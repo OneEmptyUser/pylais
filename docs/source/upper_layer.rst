@@ -59,7 +59,7 @@ posterior distribution of the model as invariant density.
     def target_3(theta):
         ...
         
-    my_lais.upper_layer(T=T, N=N, initial_points=tf.random.normal((N,dim)),
+    means = my_lais.upper_layer(T=T, N=N, initial_points=tf.random.normal((N,dim)),
     targets=[target_1, target_2, target_3])
 
 

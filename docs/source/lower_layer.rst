@@ -4,7 +4,7 @@ The IS layer
 
 Once the MCMC layer is run we can have the sampling procedure. In this case the samples of the adapted chains are used as
 location parameters of the proposals densities, :math:`q_{t,n}`. From each of this densities we will sample :math:`M` samples
-(named ``n_per_sample`` in the code). To each new sample, :math:`x_{t,n}^m`, is associated to an Importance Sampling weight,
+(named ``M`` in the code). To each new sample, :math:`x_{t,n}^m`, is associated to an Importance Sampling weight,
 such weight is calculated following the usual Adaptive Importance Sampling formula:
 
 .. math::
@@ -24,6 +24,9 @@ There are three options for the function :math:`\Phi` to be calculated:
 3. The **total** denominator.
 
 .. autofunction:: pylais.denominators.all_
+
+Sampling
+--------
 
 The sampling procedure is triggered through the method
 
@@ -48,11 +51,15 @@ sampled samples according to its weight, we can do that with the ``resample`` me
 Besides there exists methods to calculate quantities of interest as the marginal likelihood and the moments of
 the posterior:
 
-#. .. py:property:: pylais.samples.ISSamples.Z
+#. .. autoproperty:: pylais.samples.ISSamples.Z
 
       Return the value of marginal likelihood of the posterior
 #. .. automethod:: pylais.samples.ISSamples.moment_n
 #. .. automethod:: pylais.samples.ISSamples.expected_f
-#. .. py:property:: pylais.samples.ISSamples.ess
+#. .. autoproperty:: pylais.samples.ISSamples.ess
 
     Return the effective sample size (ESS) of the samples.
+
+.. .. autoclass:: pylais.samples.ISSamples
+    .. :members:
+    .. :autoproperties:
