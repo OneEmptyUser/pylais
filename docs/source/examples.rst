@@ -69,7 +69,7 @@ The chains can be explored for assessing the convergence with
 
 .. code:: python
 
-    mu_chains.trace() # plot the trace
+    mu_chains.cumulativeMean() # plot cumulative mean
 
 .. figure:: _static\\cummulativeMean_ex_1.png
 
