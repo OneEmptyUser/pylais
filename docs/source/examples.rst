@@ -104,6 +104,7 @@ histogram only of the marginal of :math:`\theta_1`:
 .. figure:: _static\\histogram_una_dim_ex_1.png
 
 or the histogram in the complete space:
+
 .. code-block:: python
 
     myLais.histogram(5000, dimension=(0, 1))
