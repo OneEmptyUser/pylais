@@ -195,6 +195,7 @@ a Student-t proposal with five degrees of freedom in the lower layer.
     print(final_samples.moment_n())
     >>> <tf.Tensor: shape=(1, 2), dtype=float64, numpy=array([[0.10242369 1.99232299]])>
 
+.. _target:
 
 Partial posteriors
 ------------------
