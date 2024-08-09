@@ -62,6 +62,7 @@ class Lais:
     def main(self, T, N, initial_points, upper_settings={}, lower_settings = {}):
         """
         Runs the complete algorithm, from the upper layer to the lower layer.
+        Calls the upper layer and then the lower layer.
 
         Parameters
         ----------
@@ -71,10 +72,22 @@ class Lais:
             The number of MCMC chains to run in the upper layer.
         initial_points : tensorflow.Tensor
             The initial points for the MCMC chains.
-        upper_settings : dict, optional
-            Additional settings for the upper layer. Defaults to an empty dictionary.
-        lower_settings : dict, optional
-            Additional settings for the lower layer. Defaults to an empty dictionary.
+        upper_settings : dict, optional, default={}
+            Additional settings for the upper layer
+            The possible keys are:
+            
+            - "method": The MCMC method to use in the upper layer. Defaults to "rwmh" (Random Walk Metropolis-Hastings).
+            - "mcmc_settings": A dictionary of additional settings for the MCMC method. Defaults to an empty dictionary.
+            - "targets": A list of functions representing the invariant distributions of the MCMC chains. Defaults to an empty list.
+        lower_settings : dict, optional, default={}
+            Additional settings for the lower layer.
+            The possible keys are
+            
+            - "cov": The covariance matrix of the proposal distribution. Defaults to the identity matrix.
+            - "den": The denominator of the proposal distribution. Defaults to "all".
+            - "M": The number of proposal samples. Defaults to 1.
+            - "proposal_type": The type of proposal distribution. Defaults to "gaussian". Other value can be "student".
+            - "df": The degrees of freedom of the proposal distribution. Defaults to None. Only used if "proposal_type" is "student".
 
         Returns
         -------
