@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../pylais')))
 import tensorflow as tf
 import tensorflow_probability as tfp
-from denominators import all_, spatial, temporal, spatial2
+from denominators import all_, spatial, temporal, spatial2, temporal2
 from utils import flatTensor3D, repeatTensor3D
 
 mvn = tfp.distributions.MultivariateNormalFullCovariance(
@@ -108,7 +108,34 @@ def test_temporal_student():
     proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
     # assert tf.reduce_all(tf.constant(expected_weights) == temporal(fake_means, samples, proposal_settings))
     assert tf.reduce_all(abs(tf.constant(expected_denominators) - temporal(fake_means, samples, proposal_settings)) < 1e-10)
-        
+
+def test_temporal2():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    expected_denominators = []
+    for n in range(samples.shape[0]):
+        # weights_chain = []
+        for t in range(samples.shape[1]):
+            loc = samples[n, t, :]
+            # mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
+            #                                                          covariance_matrix=cov)
+            mvn = tfp.distributions.MultivariateNormalTriL(loc=loc,
+                                                           scale_tril=tf.linalg.cholesky(cov))
+            expected_denominators.append(tf.math.reduce_mean(mvn.prob(fake_means[n, :, :])).numpy())
+        # weights_chain = tf.stack(weights_chain)
+        # expected_weights.append(weights_chain.numpy())
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    dens = temporal2(fake_means, flatted_samples, proposal_settings)
+    
+    assert tf.reduce_all(tf.constant(expected_denominators) == dens)
+    
+def test_temporal2_other():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    dens1 = temporal(fake_means, samples, proposal_settings)
+    dens2 = temporal2(fake_means, flatted_samples, proposal_settings)
+    assert tf.reduce_all(tf.constant(dens1) == dens2)
 
 def test_spatial():
     cov = tf.constant([[1, 0.5],
