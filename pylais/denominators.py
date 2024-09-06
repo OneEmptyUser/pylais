@@ -174,6 +174,7 @@ def temporal2(means, flatted_samples, proposal_settings):
                                                                         loc=tf.zeros(dim, dtype=dType),
                                                                         scale=tf.linalg.LinearOperatorLowerTriangular(scale))
 
+    @tf.function
     def aux_f(i):
         sample = flatted_samples[i]
         n = i // (T * M)
