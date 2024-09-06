@@ -64,6 +64,36 @@ def spatial(means, samples, proposal_settings):
     return dens
 
 def spatial2(means, flatted_samples, proposal_settings):
+    """
+    Calculate the spatial denominator for the given means and flattened samples.
+    
+    Calculate the spatial denominator as the average of the density evaluation
+    on each sample of all the proposals that were adapted at the same time
+    that the proposal that originated the sample:
+
+    .. math::
+
+        \Phi(x_{n,t}) = \dfrac{1}{N}\sum_{i=1}^N q(x_{n,t} | \mu_{i, t})
+
+
+    Parameters
+    ----------
+    means : tensorflow.Tensor, shape (N, T, dim)
+        Tensor representing the means.
+    flatted_samples : tensorflow.Tensor, shape (N*T*M, dim)
+        Tensor representing the flattened samples.
+    proposal_settings : dict
+        Dictionary containing the settings for the proposal distribution.
+        Possible keys and values are:
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
+
+    Returns
+    -------
+    dens : tensorflow.Tensor, shape (N*T*M,)
+        Array of shape (N*T*M,) representing the spatial denominator.
+    """
     N, T, dim = means.shape
     dType = means.dtype
     n_samples, dim = flatted_samples.shape
@@ -112,7 +142,7 @@ def temporal(means, samples, proposal_settings):
     ----------
     means : tensorflow.Tensor, shape (N, T, dim)
         Tensor of means.
-    samples : tensorflow.Tensor, shape (N, N*T*M, dim)
+    samples : tensorflow.Tensor, shape (N, T*M, dim)
         Tensor of samples.
     proposal_settings : dict
         Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
@@ -125,7 +155,7 @@ def temporal(means, samples, proposal_settings):
     Returns
     -------
     dens : tensorflow.Tensor
-        Tensor of shape (n_samples,) representing the temporal denominator.
+        Tensor of shape (N*T*M,) representing the temporal denominator.
     """
     
     N, T, dim = means.shape
@@ -156,6 +186,34 @@ def temporal(means, samples, proposal_settings):
     return dens
 
 def temporal2(means, flatted_samples, proposal_settings):
+    """
+    Compute the temporal denominator of a proposal distribution.
+
+    Calculate the temporal denominator as the average of the density evaluation
+    on each sample of all the proposals that were adapted at the same time
+    that the proposal that originated the sample.
+    
+    .. math::
+    
+        \Phi(x_{n,t}) = \dfrac{1}{T}\sum_{k=1}^T q(x_{n,t} | \mu_{n, k})
+
+    Parameters
+    ----------
+    means : tensorflow.Tensor
+        Tensor of shape (N, T, dim) representing the mean values.
+    flatted_samples : tensorflow.Tensor, shape (N*T*M, dim)
+        Tensor of shape (N*T*M, dim) representing the flattened samples.
+    proposal_settings : dict
+        Dictionary containing the proposal settings.
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
+
+    Returns
+    -------
+    dens : tensorflow.Tensor
+        Tensor of shape (N*T*M,) representing the temporal denominator.
+    """
     N, T, dim = means.shape
     dType = means.dtype
     n_samples, dim = flatted_samples.shape
