@@ -119,8 +119,10 @@ def test_spatial():
     for n in range(samples.shape[0]):
         for t in range(samples.shape[1]):
             loc = samples[n, t, :]
-            mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
-                                                                     covariance_matrix=cov)
+            # mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
+            #                                                          covariance_matrix=cov)
+            mvn = tfp.distributions.MultivariateNormalTriL(loc=loc,
+                                                           scale_tril=tf.linalg.cholesky(cov))
             expected_denominators.append(tf.math.reduce_mean(mvn.prob(repeated_means[:, t, :])).numpy())
         # weights_chain = tf.stack(weights_chain)
         # expected_weights.append(weights_chain.numpy())
@@ -138,9 +140,13 @@ def test_spatial_other():
         for t in range(n_samples):
             den = 0
             for iprop in range(N):
-                den += tfp.distributions.MultivariateNormalFullCovariance(
+                # den += tfp.distributions.MultivariateNormalFullCovariance(
+                #     loc=repeated_means[iprop, t, :],
+                #     covariance_matrix=cov
+                # ).prob(samples[n, t, :]).numpy()
+                den += tfp.distributions.MultivariateNormalTriL(
                     loc=repeated_means[iprop, t, :],
-                    covariance_matrix=cov
+                    scale_tril=tf.linalg.cholesky(cov)
                 ).prob(samples[n, t, :]).numpy()
             expected_denominators.append(den/N)
         # weights_chain = tf.stack(weights_chain)
@@ -178,8 +184,10 @@ def test_spatial2():
     for n in range(samples.shape[0]):
         for t in range(samples.shape[1]):
             loc = samples[n, t, :]
-            mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
-                                                                     covariance_matrix=cov)
+            # mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=loc,
+            #                                                          covariance_matrix=cov)
+            mvn = tfp.distributions.MultivariateNormalTriL(loc=loc,
+                                                           scale_tril=tf.linalg.cholesky(cov))
             expected_denominators.append(tf.math.reduce_mean(mvn.prob(repeated_means[:, t, :])).numpy())
         # weights_chain = tf.stack(weights_chain)
         # expected_weights.append(weights_chain.numpy())
