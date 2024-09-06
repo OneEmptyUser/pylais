@@ -1,7 +1,7 @@
 from pylais.utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, returnKernel
 import tensorflow as tf
 import tensorflow_probability as tfp
-from pylais.denominators import all_, temporal, spatial
+from pylais.denominators import all_, temporal2, spatial2
 from pylais.samples import ISSamples, mcmcSamples
 import matplotlib.pyplot as plt
 
@@ -351,9 +351,11 @@ class Lais:
         print("Calculating weights: denominator")
         proposal_settings = {"proposal_type": proposal_type, "df": df, "cov": cov}
         if den == "temporal":
-            denominator = temporal(means, samples, proposal_settings)
+            # denominator = temporal(means, samples, proposal_settings)
+            denominator = temporal2(means, flatted_samples, proposal_settings)
         elif den == "spatial":
-            denominator = spatial(means, samples, proposal_settings)
+            # denominator = spatial(means, samples, proposal_settings)
+            denominator = spatial2(means, flatted_samples, proposal_settings)
         else:
             denominator  = all_(flatted_means, flatted_samples, proposal_settings)
         print("Calculating weights: done")
