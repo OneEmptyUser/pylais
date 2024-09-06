@@ -63,6 +63,46 @@ def spatial(means, samples, proposal_settings):
     dens = tf.stack(dens) 
     return dens
 
+def spatial2(means, flatted_samples, proposal_settings):
+    N, T, dim = means.shape
+    dType = means.dtype
+    n_samples, dim = flatted_samples.shape
+    
+    M = n_samples // (T * N)
+    
+    cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
+    scale = tf.linalg.cholesky(cov)
+    if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
+        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
+                                                            scale_tril=scale)
+    
+    if proposal_settings.get("proposal_type", "gaussian") == "student":
+        df = proposal_settings.get("df", dim + 1)
+        proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
+                                                                        loc=tf.zeros(dim, dtype=dType),
+                                                                        scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+    
+    @tf.function
+    def aux_f(i):
+        sample = flatted_samples[i]
+        false_t = i % (M*T)
+        t = false_t // M
+        return tf.math.reduce_mean(proposal.prob(means[:, t, :] - sample))
+    
+    dens = tf.map_fn(
+        fn=aux_f, 
+        elems=tf.range(n_samples),
+        dtype=dType)
+    
+    return dens
+        
+        
+        
+        
+        
+        
+        
+        
 def temporal(means, samples, proposal_settings):
     """
     Calculate the temporal denominator for each sample.
