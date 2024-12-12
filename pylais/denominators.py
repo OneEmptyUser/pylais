@@ -338,6 +338,7 @@ def log_all(flatted_means, flatted_samples, proposal_settings):
     """
     n_total_means, dim = flatted_means.shape
     dType = flatted_means.dtype
+    n_total_means = tf.cast(n_total_means, dType)
     cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
     scale = tf.linalg.cholesky(cov)
     if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
@@ -351,7 +352,7 @@ def log_all(flatted_means, flatted_samples, proposal_settings):
                                                                         scale=tf.linalg.LinearOperatorLowerTriangular(scale))
     
     aux_fn = tf.function(
-        lambda x: tf.math.reduce_logsumex( proposal.log_prob(flatted_means - x)) - tf.math.log(n_total_means)
+        lambda x: tf.math.reduce_logsumexp( proposal.log_prob(flatted_means - x)) - tf.math.log(n_total_means)
     )
     
     log_dens = tf.map_fn(
