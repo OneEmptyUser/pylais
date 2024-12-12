@@ -362,8 +362,9 @@ class Lais:
             denominator  = all_(flatted_means, flatted_samples, proposal_settings)
             log_denominator = log_all(flatted_means, flatted_samples, proposal_settings)
         print("Calculating weights: done")
-        weights = numerator/denominator
+        # weights = numerator/denominator
         log_weights = log_numerator - log_denominator
+        weights = tf.math.exp(log_weights)
         
         self.samples = samples
         # self.flatted_samples = flatted_samples
