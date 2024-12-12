@@ -361,3 +361,36 @@ def log_all(flatted_means, flatted_samples, proposal_settings):
     )
     
     return log_dens
+
+def log_temporal2(means, flatted_samples, proposal_settings):
+    N, T, dim = means.shape
+    dType = means.dtype
+    n_samples, dim = flatted_samples.shape
+    
+    M = n_samples // (T * N)
+    typed_T = tf.cast(T, dType)
+    
+    cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
+    scale = tf.linalg.cholesky(cov)
+    if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
+        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
+                                                            scale_tril=scale)
+    
+    elif proposal_settings.get("proposal_type", "gaussian") == "student":
+        df = proposal_settings.get("df", dim + 1)
+        proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
+                                                                        loc=tf.zeros(dim, dtype=dType),
+                                                                        scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+    @tf.function
+    def aux_f(i):
+        sample = flatted_samples[i]
+        n = i // (T*M)
+        return tf.math.reduce_logsumexp(proposal.log_prob(means[n, :, :] - sample)) - tf.math.log(typed_T)
+    
+    log_dens = tf.map_fn(
+        fn=aux_f,
+        elems=tf.range(n_samples),
+        dtype=dType
+    )
+    
+    return log_dens
