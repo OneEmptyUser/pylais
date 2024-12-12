@@ -1,7 +1,7 @@
 from pylais.utils import buildModelLogp, run_mcmc, flatTensor3D, repeatTensor3D, returnKernel
 import tensorflow as tf
 import tensorflow_probability as tfp
-from pylais.denominators import all_, temporal2, spatial2
+from pylais.denominators import all_, temporal2, spatial2, log_all, log_temporal2, log_spatial2
 from pylais.samples import ISSamples, mcmcSamples
 import matplotlib.pyplot as plt
 
@@ -346,25 +346,29 @@ class Lais:
         
         # calculate the denominators
         print("Calculating weights: numerator")
-        numerator = tf.map_fn(fn=logposterior, elems=flatted_samples)
-        numerator = tf.exp(numerator)
+        log_numerator = tf.map_fn(fn=logposterior, elems=flatted_samples)
+        numerator = tf.exp(log_numerator)
         print("Calculating weights: denominator")
         proposal_settings = {"proposal_type": proposal_type, "df": df, "cov": cov}
         if den == "temporal":
             # denominator = temporal(means, samples, proposal_settings)
             denominator = temporal2(means, flatted_samples, proposal_settings)
+            log_denominator = log_temporal2(means, flatted_samples, proposal_settings)
         elif den == "spatial":
             # denominator = spatial(means, samples, proposal_settings)
             denominator = spatial2(means, flatted_samples, proposal_settings)
+            log_denominator = log_spatial2(means, flatted_samples, proposal_settings)
         else:
             denominator  = all_(flatted_means, flatted_samples, proposal_settings)
+            log_denominator = log_all(flatted_means, flatted_samples, proposal_settings)
         print("Calculating weights: done")
         weights = numerator/denominator
+        log_weights = log_numerator - log_denominator
         
         self.samples = samples
         # self.flatted_samples = flatted_samples
         self.weights = weights
-        
+        self.log_weights = log_weights
         self.IS_samples = ISSamples(flatted_samples, weights)
         return self.IS_samples
         
