@@ -305,3 +305,58 @@ def all_(flatted_means, flatted_samples, proposal_settings):
         elems=flatted_samples
     )
     return dens
+
+def log_all(flatted_means, flatted_samples, proposal_settings):
+    """
+    Calculate the log of the total denominator for each sample.
+
+    Calculate the total denominator as the average of the log-density evaluation
+    of all the proposals on each sample.
+
+    .. math::
+    
+        \log \Phi(x_{n,t}) = \log \dfrac{1}{N} \sum_{i=1}^N \log q(x_{i,t} | \mu_{i, k})
+        
+    Parameters
+    ----------
+    flatted_means : tensorflow.Tensor, shape (N*T, dim)
+        The tensor of means flattened from (N, T, dim) to (N*T, dim).
+    flatted_samples : tensorflow.Tensor, shape (N*T*M, dim)
+        The tensor of samples flattened from (N, T*M, dim) to (N*T*M, dim).
+    proposal_settings : dict
+        Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
+        keys for this dictionary are:
+        
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
+
+    Returns
+    -------
+    log_dens : tensorflow.Tensor
+        The tensor of log-densities with shape (n_samples,).
+    """
+    n_total_means, dim = flatted_means.shape
+    dType = flatted_means.dtype
+    cov = proposal_settings.get("cov", tf.eye(dim, dtype=dType))
+    scale = tf.linalg.cholesky(cov)
+    if proposal_settings.get("proposal_type", "gaussian") == "gaussian":
+        proposal = tfp.distributions.MultivariateNormalTriL(loc=tf.zeros(dim, dtype=dType),
+                                                            scale_tril=scale)
+    
+    if proposal_settings.get("proposal_type", "gaussian") == "student":
+        df = proposal_settings.get("df", dim + 1)
+        proposal = tfp.distributions.MultivariateStudentTLinearOperator(df,
+                                                                        loc=tf.zeros(dim, dtype=dType),
+                                                                        scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+    
+    aux_fn = tf.function(
+        lambda x: tf.math.reduce_logsumex( proposal.log_prob(flatted_means - x)) - tf.math.log(n_total_means)
+    )
+    
+    log_dens = tf.map_fn(
+        fn=aux_fn,
+        elems=flatted_samples
+    )
+    
+    return log_dens
