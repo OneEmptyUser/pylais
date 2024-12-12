@@ -53,6 +53,28 @@ def test_log_all():
     # assert tf.reduce_all(tf.constant(expected_denominators) == actual_denominator)
     assert tf.reduce_all(tf.abs(tf.constant(expected_denominators) - actual_denominator)<1e-15)
     
+def test_log_all_student():
+    
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    scale = tf.linalg.cholesky(cov)
+    df = 10
+    expected_denominators = []
+    for n in range(flatted_samples.shape[0]):
+        mvt = tfp.distributions.MultivariateStudentTLinearOperator(df=df,
+                                                                   loc=flatted_samples[n],
+                                                                   scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+        expected_denominators.append(tf.math.reduce_mean(mvt.prob(flatted_means)).numpy())
+    
+    
+    
+    proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
+    actual_log_denominator = log_all(flatted_means, flatted_samples, proposal_settings)
+    actual_denominator = tf.math.exp(actual_log_denominator)
+    # assert tf.reduce_all(tf.constant(expected_weights) == all_(flatted_means, flatted_samples, proposal_settings))
+    assert tf.reduce_all(abs(tf.constant(expected_denominators) - actual_denominator)<1e-15)
+            
+    
 def test_all_():
     
     cov = tf.constant([[1, 0.5],
