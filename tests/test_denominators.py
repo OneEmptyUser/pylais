@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../pylais')))
 import tensorflow as tf
 import tensorflow_probability as tfp
-from denominators import all_, spatial, temporal, spatial2, temporal2
+from denominators import all_, spatial, temporal, spatial2, temporal2, log_all
 from utils import flatTensor3D, repeatTensor3D
 
 mvn = tfp.distributions.MultivariateNormalFullCovariance(
@@ -39,6 +39,20 @@ flatted_samples = mvn.sample(n_per_sample*n_iter*N) + flatted_repeated_means
 samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
 
 
+def test_log_all():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    expected_denominators = []
+    for n in range(flatted_samples.shape[0]):
+        mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=flatted_samples[n],
+                                                                 covariance_matrix=cov)
+        expected_denominators.append(tf.math.reduce_mean(mvn.prob(flatted_means)).numpy())
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    actual_log_denominator = log_all(flatted_means, flatted_samples, proposal_settings)
+    actual_denominator = tf.math.exp(actual_log_denominator)
+    # assert tf.reduce_all(tf.constant(expected_denominators) == actual_denominator)
+    assert tf.reduce_all(tf.abs(tf.constant(expected_denominators) - actual_denominator)<1e-15)
+    
 def test_all_():
     
     cov = tf.constant([[1, 0.5],
@@ -230,3 +244,8 @@ def test_spatial2_other():
     dens2 = spatial2(fake_means, flatted_samples, proposal_settings)
     
     assert tf.reduce_all(dens1 == dens2)
+    
+    
+    
+if __name__ == "__main__":
+    test_log_all()
