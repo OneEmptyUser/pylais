@@ -363,6 +363,36 @@ def log_all(flatted_means, flatted_samples, proposal_settings):
     return log_dens
 
 def log_temporal2(means, flatted_samples, proposal_settings):
+    """
+    Calculate the log of the temporal denominator for each sample.
+
+    Calculate the log of the temporal denominator as the average of the log-density evaluation
+    on each sample of all the proposals that were adapted at the same time
+    that the proposal that originated the sample:
+
+    .. math::
+
+        \log \Phi(x_{n,t}) = \log \dfrac{1}{T}\sum_{k=1}^T q(x_{n,t} | \mu_{n, k})
+
+    Parameters
+    ----------
+    means : tensorflow.Tensor, shape (N, T, dim)
+        Tensor of means.
+    flatted_samples : tensorflow.Tensor, shape (N*T*M, dim)
+        Tensor of flattened samples.
+    proposal_settings : dict
+        Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
+        keys for this dictionary are:
+
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
+
+    Returns
+    -------
+    log_dens : tensorflow.Tensor
+        Tensor of shape (n_samples,) representing the log of the temporal denominator.
+    """
     N, T, dim = means.shape
     dType = means.dtype
     n_samples, dim = flatted_samples.shape
@@ -397,6 +427,36 @@ def log_temporal2(means, flatted_samples, proposal_settings):
 
 
 def log_spatial2(means, flatted_samples, proposal_settings):
+    """
+    Calculate the logarithm of the spatial denominator for each sample.
+
+    Calculate the logarithm of the spatial denominator as the average of the density evaluation
+    on each sample of all the proposals that were adapted at the same time
+    that the proposal that originated the sample:
+
+    .. math::
+
+        \Phi(x_{n,t}) = \dfrac{1}{N}\sum_{i=1}^N q(x_{n,t} | \mu_{i, t})
+
+    Parameters
+    ----------
+    means : tensorflow.Tensor, shape (N, T, dim)
+        Tensor of means.
+    flatted_samples : tensorflow.Tensor, shape (N*T*M, dim)
+        Tensor of flattened samples.
+    proposal_settings : dict
+        Dictionary containing the proposal settings, including the covariance matrix and the proposal type. The possible
+        keys for this dictionary are:
+        
+        - "cov": the covariance matrix of the proposal distribution.
+        - "proposal_type": the type of proposal distribution. Possible values are "gaussian" and "student".
+        - "df": the degrees of freedom of the student-t distribution. Only used if "proposal_type" is "student".
+
+    Returns
+    -------
+    log_dens : tensorflow.Tensor
+        Tensor of shape (n_samples,) representing the logarithm of the spatial denominator.
+    """
     N, T, dim = means.shape
     dType = means.dtype
     n_samples, dim = flatted_samples.shape
