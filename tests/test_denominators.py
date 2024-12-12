@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../pylais')))
 import tensorflow as tf
 import tensorflow_probability as tfp
-from denominators import all_, spatial, temporal, spatial2, temporal2, log_all, log_temporal2
+from denominators import all_, spatial, temporal, spatial2, temporal2, log_all, log_temporal2, log_spatial2
 from utils import flatTensor3D, repeatTensor3D
 
 mvn = tfp.distributions.MultivariateNormalFullCovariance(
@@ -37,6 +37,46 @@ mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=tf.zeros(2, dtype=t
 
 flatted_samples = mvn.sample(n_per_sample*n_iter*N) + flatted_repeated_means
 samples = tf.reshape(flatted_samples, (N,n_iter*n_per_sample, dim))
+
+
+def test_log_spatial2():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    expected_denominators = []
+    
+    for n in range(samples.shape[0]):
+        for t in range(samples.shape[1]):
+            loc = samples[n, t, :]
+            mvn = tfp.distributions.MultivariateNormalTriL(loc=loc,
+                                                           scale_tril=tf.linalg.cholesky(cov))
+            expected_denominators.append(tf.math.reduce_mean(mvn.prob(repeated_means[:, t, :])).numpy())
+        
+    proposal_settings = {"proposal_type": "gaussian", "cov": cov}
+    actual_log_dens = log_spatial2(fake_means, flatted_samples, proposal_settings)
+    actual_dens = tf.math.exp(actual_log_dens)
+    
+    assert tf.math.reduce_all(tf.abs(expected_denominators - actual_dens)<1e-15)
+
+def test_log_spatial2_student():
+    cov = tf.constant([[1, 0.5],
+                       [0.5, 1]], dtype=tf.float64)
+    expected_denominators = []
+    scale = tf.linalg.cholesky(cov)
+    df = 10
+    n_per_sample = samples.shape[1]//fake_means.shape[1]
+    for n in range(samples.shape[0]):
+        for t in range(samples.shape[1]):
+            loc = samples[n, t, :]
+            mvt = tfp.distributions.MultivariateStudentTLinearOperator(df=df,
+                                                                       loc=loc,
+                                                                       scale=tf.linalg.LinearOperatorLowerTriangular(scale))
+            expected_denominators.append(tf.math.reduce_mean(mvt.prob(repeated_means[:, t, :])).numpy())
+    
+    proposal_settings = {"proposal_type": "student", "cov": cov, "df": df}
+    actual_log_dens = log_spatial2(fake_means, flatted_samples, proposal_settings)
+    actual_dens = tf.math.exp(actual_log_dens)
+    
+    assert tf.math.reduce_all(tf.abs(expected_denominators - actual_dens)<1e-15)
 
 def test_log_temporal2():
     cov = tf.constant([[1, 0.5],
@@ -315,4 +355,4 @@ def test_spatial2_other():
     
     
 if __name__ == "__main__":
-    test_log_temporal2_student()
+    test_log_spatial2()
