@@ -400,7 +400,7 @@ class ISSamples:
             Calculate the expected value of the function f at the samples.
     """
     
-    def __init__(self, samples, weights):
+    def __init__(self, samples, weights, log_weights=None):
         """
         Initialize an instance of the class.
 
@@ -417,6 +417,9 @@ class ISSamples:
         """
         self.samples = samples
         self.weights = weights
+        if log_weights is not None:
+            self.log_weights = log_weights
+            self.normalized_log_weights = log_weights - tf.math.reduce_logsumexp(log_weights)
         self.normalized_weights = weights / tf.math.reduce_sum(weights)
         self._index = 0
     
